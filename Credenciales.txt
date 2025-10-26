@@ -1,0 +1,29 @@
+Empleado
+id 8
+yofernicolasmc@ufps.edu.co
+nicolas
+
+Cliente
+id 12
+cliente@ufps.edu.co
+cliente
+
+Empleado
+id 8
+yofernicolasmc@ufps.edu.co
+nicolas
+
+Admin
+id 10
+mariafernandacabarico@ufps.edu.co
+maria
+
+Lider
+id 11
+danielstiven@ufps.edu.co
+Daniel
+
+Cliente
+id 12
+cliente@ufps.edu.co
+cliente

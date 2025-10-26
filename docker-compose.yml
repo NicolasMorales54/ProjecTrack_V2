@@ -1,0 +1,65 @@
+version: "3.8"
+
+services:
+  # Base de datos MySQL
+  mysql:
+    image: mysql:8.0
+    container_name: projectrack-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: yofer
+      MYSQL_USER: root
+      MYSQL_PASSWORD: root
+    ports:
+      - "3306:3306"
+    volumes:
+      # Volumen para persistir los datos
+      - mysql_data:/var/lib/mysql
+      # Script de inicialización de la base de datos
+      - ./db_init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - projectrack-network
+
+  # Backend NestJS
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: projectrack-backend
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      # Variables de entorno para la base de datos
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USERNAME: root
+      DB_PASSWORD: root
+      DB_DATABASE: yofer
+      # Variables de aplicación
+      PORT: 3000
+      NODE_ENV: production
+      # URL del frontend en Netlify (actualizar cuando tengas el dominio)
+      FRONTEND_URL: https://projectrackv2.netlify.app
+      SESSION_SECRET: supersecret
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - projectrack-network
+
+# Volúmenes persistentes
+volumes:
+  mysql_data:
+    driver: local
+
+# Red personalizada
+networks:
+  projectrack-network:
+    driver: bridge

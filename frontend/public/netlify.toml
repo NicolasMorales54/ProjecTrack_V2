@@ -1,0 +1,19 @@
+# Configuración de Netlify para Projectrack
+
+# Directorio de build
+[build]
+  publish = "dist/projectrack/browser"
+  command = "npm run build"
+
+# Redirección de API al backend en Google Cloud
+[[redirects]]
+  from = "/api/*"
+  to = "http://35.208.217.192:3000/:splat"
+  status = 200
+  force = true
+
+# Redirección para SPA (Angular Router)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

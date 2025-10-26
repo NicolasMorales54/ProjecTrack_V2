@@ -1,0 +1,65 @@
+<!-- Overlay opaco -->
+<div class="modal-overlay" (click)="closeModal()"></div>
+
+<!-- Modal centrado -->
+<div class="modal-container">
+  <div class="modal-header">
+    <h3 class="font-semibold text-gray-800 text-lg">Notificaciones</h3>
+    <div class="flex items-center gap-3">
+      <button (click)="markAllAsRead()" class="text-blue-600 text-sm hover:underline">
+        Marcar como leídas
+      </button>
+      <button (click)="closeModal()" class="text-gray-400 hover:text-gray-600">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="py-8 text-center text-gray-500">
+    <div class="border-gray-300 border-t-blue-500 mx-auto mb-2 border-4 rounded-full w-8 h-8 animate-spin"></div>
+    Cargando...
+  </div>
+
+  <div *ngIf="!loading && notifications.length === 0" class="py-8 text-center text-gray-500">
+    Sin leer
+  </div>
+
+  <div *ngIf="!loading && notifications.length > 0" class="modal-content">
+    <!-- Sección: Sin leer -->
+    <div *ngIf="unreadNotifications.length > 0">
+      <div class="bg-gray-50 px-4 py-2">
+        <span class="font-semibold text-gray-700 text-xs uppercase">Sin leer</span>
+      </div>
+      <div *ngFor="let n of unreadNotifications"
+           class="hover:bg-gray-50 p-4 cursor-pointer transition-colors"
+           (click)="markAsRead(n)">
+        <div class="flex items-start gap-3">
+          <div class="flex-shrink-0 bg-red-500 rounded-full w-2 h-2 mt-2"></div>
+          <div class="flex-1">
+            <p class="font-medium text-gray-800 text-sm">{{ n.mensaje }}</p>
+            <p class="mt-1 text-gray-500 text-xs">{{ n.fechaCreacion | date:'short' }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sección: Últimos -->
+    <div *ngIf="readNotifications.length > 0">
+      <div class="bg-gray-50 px-4 py-2">
+        <span class="font-semibold text-gray-700 text-xs uppercase">Últimos</span>
+      </div>
+      <div *ngFor="let n of readNotifications"
+           class="hover:bg-gray-50 p-4 transition-colors opacity-70">
+        <div class="flex items-start gap-3">
+          <div class="flex-shrink-0 bg-gray-300 rounded-full w-2 h-2 mt-2"></div>
+          <div class="flex-1">
+            <p class="text-gray-700 text-sm">{{ n.mensaje }}</p>
+            <p class="mt-1 text-gray-500 text-xs">{{ n.fechaCreacion | date:'short' }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
