@@ -5,7 +5,6 @@ import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
   selector: 'app-root',
   imports: [RouterOutlet],
   templateUrl: './app.component.html',
-  styleUrl: './app.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppComponent implements OnInit {
@@ -16,7 +15,8 @@ export class AppComponent implements OnInit {
   ngOnInit(): void {
     this.router.events.subscribe((event: Event) => {
       if (event instanceof NavigationEnd) {
-        setTimeout(() => window.HSStaticMethods.autoInit(), 100);
+        // Removed Preline autoInit - migrated to pure Tailwind CSS
+        // No longer needed: window.HSStaticMethods.autoInit()
       }
     });
   }

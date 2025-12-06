@@ -1,0 +1,400 @@
+<div class="p-6">
+  <!-- Header -->
+  <div class="mb-6">
+    <h1 class="text-3xl font-bold text-gray-800 mb-2">Gestión de Proyectos</h1>
+    <p class="text-gray-600">Administra todos los proyectos del sistema</p>
+  </div>
+
+  <!-- Search and Actions Bar -->
+  <div class="bg-white shadow rounded-xl p-4 mb-6">
+    <div class="flex flex-col gap-4">
+      <!-- First Row: Search and Create Button -->
+      <div class="flex gap-4 items-center">
+        <div class="flex-1">
+          <div class="relative">
+            <svg xmlns="http://www.w3.org/2000/svg" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input
+              type="text"
+              [value]="searchTerm"
+              (input)="onSearchChange($event)"
+              placeholder="Buscar proyectos por nombre o descripción..."
+              class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            />
+          </div>
+        </div>
+        <button
+          [routerLink]="['/admin/create-project']"
+          class="bg-primary-500 hover:bg-primary-600 px-6 py-2 rounded-lg text-white font-medium transition-colors flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+          </svg>
+          Crear Proyecto
+        </button>
+      </div>
+
+      <!-- Second Row: Advanced Filters -->
+      <div class="flex gap-3 items-center flex-wrap">
+        <div class="flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+          </svg>
+          <span class="text-sm font-medium text-gray-700">Filtros:</span>
+        </div>
+
+        <select
+          [value]="selectedLeaderId || ''"
+          (change)="onLeaderFilterChange($event)"
+          class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+          <option value="">Todos los líderes</option>
+          <option *ngFor="let leader of allLeaders" [value]="leader.id">
+            {{ leader.primerNombre }} {{ leader.primerApellido }}
+          </option>
+        </select>
+
+        <input
+          type="date"
+          [value]="startDate"
+          (change)="onStartDateChange($event)"
+          placeholder="Fecha inicio"
+          class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+        />
+
+        <input
+          type="date"
+          [value]="endDate"
+          (change)="onEndDateChange($event)"
+          placeholder="Fecha fin"
+          class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+        />
+
+        <button
+          *ngIf="selectedLeaderId || startDate || endDate || searchTerm"
+          (click)="clearFilters()"
+          class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+          Limpiar filtros
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="bg-white shadow rounded-xl mb-6">
+    <div class="border-b border-gray-200 px-6">
+      <nav class="-mb-px flex gap-6">
+        <button
+          (click)="activeTab = 'todos'"
+          [class.border-primary-500]="activeTab === 'todos'"
+          [class.text-primary-600]="activeTab === 'todos'"
+          [class.border-transparent]="activeTab !== 'todos'"
+          [class.text-gray-500]="activeTab !== 'todos'"
+          class="border-b-2 px-1 py-4 text-sm font-medium hover:text-primary-600 hover:border-primary-300 transition-colors flex items-center gap-2">
+          Todos
+          <span class="px-2 py-0.5 rounded-full text-xs font-semibold"
+            [class.bg-primary-100]="activeTab === 'todos'"
+            [class.text-primary-700]="activeTab === 'todos'"
+            [class.bg-gray-100]="activeTab !== 'todos'"
+            [class.text-gray-600]="activeTab !== 'todos'">
+            {{ todosCount }}
+          </span>
+        </button>
+        <button
+          (click)="activeTab = 'activos'"
+          [class.border-primary-500]="activeTab === 'activos'"
+          [class.text-primary-600]="activeTab === 'activos'"
+          [class.border-transparent]="activeTab !== 'activos'"
+          [class.text-gray-500]="activeTab !== 'activos'"
+          class="border-b-2 px-1 py-4 text-sm font-medium hover:text-primary-600 hover:border-primary-300 transition-colors flex items-center gap-2">
+          Activos
+          <span class="px-2 py-0.5 rounded-full text-xs font-semibold"
+            [class.bg-primary-100]="activeTab === 'activos'"
+            [class.text-primary-700]="activeTab === 'activos'"
+            [class.bg-gray-100]="activeTab !== 'activos'"
+            [class.text-gray-600]="activeTab !== 'activos'">
+            {{ activosCount }}
+          </span>
+        </button>
+        <button
+          (click)="activeTab = 'completados'"
+          [class.border-primary-500]="activeTab === 'completados'"
+          [class.text-primary-600]="activeTab === 'completados'"
+          [class.border-transparent]="activeTab !== 'completados'"
+          [class.text-gray-500]="activeTab !== 'completados'"
+          class="border-b-2 px-1 py-4 text-sm font-medium hover:text-primary-600 hover:border-primary-300 transition-colors flex items-center gap-2">
+          Completados
+          <span class="px-2 py-0.5 rounded-full text-xs font-semibold"
+            [class.bg-primary-100]="activeTab === 'completados'"
+            [class.text-primary-700]="activeTab === 'completados'"
+            [class.bg-gray-100]="activeTab !== 'completados'"
+            [class.text-gray-600]="activeTab !== 'completados'">
+            {{ completadosCount }}
+          </span>
+        </button>
+        <button
+          (click)="activeTab = 'pausados'"
+          [class.border-primary-500]="activeTab === 'pausados'"
+          [class.text-primary-600]="activeTab === 'pausados'"
+          [class.border-transparent]="activeTab !== 'pausados'"
+          [class.text-gray-500]="activeTab !== 'pausados'"
+          class="border-b-2 px-1 py-4 text-sm font-medium hover:text-primary-600 hover:border-primary-300 transition-colors flex items-center gap-2">
+          Pausados
+          <span class="px-2 py-0.5 rounded-full text-xs font-semibold"
+            [class.bg-primary-100]="activeTab === 'pausados'"
+            [class.text-primary-700]="activeTab === 'pausados'"
+            [class.bg-gray-100]="activeTab !== 'pausados'"
+            [class.text-gray-600]="activeTab !== 'pausados'">
+            {{ pausadosCount }}
+          </span>
+        </button>
+        <button
+          (click)="activeTab = 'archivados'"
+          [class.border-primary-500]="activeTab === 'archivados'"
+          [class.text-primary-600]="activeTab === 'archivados'"
+          [class.border-transparent]="activeTab !== 'archivados'"
+          [class.text-gray-500]="activeTab !== 'archivados'"
+          class="border-b-2 px-1 py-4 text-sm font-medium hover:text-primary-600 hover:border-primary-300 transition-colors flex items-center gap-2">
+          Archivados
+          <span class="px-2 py-0.5 rounded-full text-xs font-semibold"
+            [class.bg-primary-100]="activeTab === 'archivados'"
+            [class.text-primary-700]="activeTab === 'archivados'"
+            [class.bg-gray-100]="activeTab !== 'archivados'"
+            [class.text-gray-600]="activeTab !== 'archivados'">
+            {{ archivadosCount }}
+          </span>
+        </button>
+        <button
+          (click)="activeTab = 'eliminados'"
+          [class.border-primary-500]="activeTab === 'eliminados'"
+          [class.text-primary-600]="activeTab === 'eliminados'"
+          [class.border-transparent]="activeTab !== 'eliminados'"
+          [class.text-gray-500]="activeTab !== 'eliminados'"
+          class="border-b-2 px-1 py-4 text-sm font-medium hover:text-primary-600 hover:border-primary-300 transition-colors flex items-center gap-2">
+          Eliminados
+          <span class="px-2 py-0.5 rounded-full text-xs font-semibold"
+            [class.bg-primary-100]="activeTab === 'eliminados'"
+            [class.text-primary-700]="activeTab === 'eliminados'"
+            [class.bg-gray-100]="activeTab !== 'eliminados'"
+            [class.text-gray-600]="activeTab !== 'eliminados'">
+            {{ eliminadosCount }}
+          </span>
+        </button>
+      </nav>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="loading" class="flex justify-center items-center py-12">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500"></div>
+    </div>
+
+    <!-- Projects Table -->
+    <div *ngIf="!loading && filteredProjects.length > 0" class="overflow-x-auto p-6">
+      <table class="w-full">
+        <thead class="bg-gray-50 border-b border-gray-200">
+          <tr>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Nombre</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Estado</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Líder</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Progreso</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Fecha Inicio</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Fecha Fin</th>
+            <!-- Auditoría columns (conditional) -->
+            <th *ngIf="activeTab === 'archivados'" class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Archivado Por</th>
+            <th *ngIf="activeTab === 'archivados'" class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Fecha Archivado</th>
+            <th *ngIf="activeTab === 'pausados'" class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Pausado Por</th>
+            <th *ngIf="activeTab === 'pausados'" class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Fecha Pausado</th>
+            <th *ngIf="activeTab === 'eliminados'" class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Eliminado Por</th>
+            <th *ngIf="activeTab === 'eliminados'" class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Fecha Eliminado</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Acciones</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+          <tr *ngFor="let project of filteredProjects" class="hover:bg-gray-50 transition-colors">
+            <td class="px-4 py-4">
+              <div>
+                <p class="font-semibold text-gray-800">{{ project.nombre }}</p>
+                <p class="text-sm text-gray-500 line-clamp-1">{{ project.descripcion || 'Sin descripción' }}</p>
+              </div>
+            </td>
+            <td class="px-4 py-4">
+              <span class="px-3 py-1 rounded-full text-xs font-medium" [ngClass]="getEstadoBadgeClass(project.estado)">
+                {{ project.estado }}
+              </span>
+            </td>
+            <td class="px-4 py-4 text-sm text-gray-700">
+              {{ project.creadoPor?.primerNombre || 'N/A' }} {{ project.creadoPor?.primerApellido || '' }}
+            </td>
+            <td class="px-4 py-4">
+              <div class="flex items-center gap-2">
+                <div class="flex-1 bg-gray-200 rounded-full h-2.5 min-w-[80px]">
+                  <div
+                    class="h-2.5 rounded-full transition-all duration-300"
+                    [ngClass]="{
+                      'bg-green-500': getProjectProgress(project.id) === 100,
+                      'bg-yellow-500': getProjectProgress(project.id) >= 50 && getProjectProgress(project.id) < 100,
+                      'bg-red-500': getProjectProgress(project.id) < 50
+                    }"
+                    [style.width.%]="getProjectProgress(project.id)">
+                  </div>
+                </div>
+                <span class="text-xs font-semibold text-gray-600 min-w-[35px]">
+                  {{ getProjectProgress(project.id) }}%
+                </span>
+              </div>
+            </td>
+            <td class="px-4 py-4 text-sm text-gray-600">{{ formatDate(project.fechaInicio) }}</td>
+            <td class="px-4 py-4 text-sm text-gray-600">{{ formatDate(project.fechaFin) }}</td>
+            <!-- Auditoría cells (conditional) -->
+            <td *ngIf="activeTab === 'archivados'" class="px-4 py-4 text-sm text-gray-700">
+              <div *ngIf="project.archivadoPor; else noData">
+                {{ project.archivadoPor.primerNombre }} {{ project.archivadoPor.primerApellido }}
+              </div>
+              <ng-template #noData><span class="text-gray-400">N/A</span></ng-template>
+            </td>
+            <td *ngIf="activeTab === 'archivados'" class="px-4 py-4 text-sm text-gray-600">
+              {{ formatDate(project.fechaArchivado) }}
+            </td>
+            <td *ngIf="activeTab === 'pausados'" class="px-4 py-4 text-sm text-gray-700">
+              <div *ngIf="project.pausadoPor; else noDataPausado">
+                {{ project.pausadoPor.primerNombre }} {{ project.pausadoPor.primerApellido }}
+              </div>
+              <ng-template #noDataPausado><span class="text-gray-400">N/A</span></ng-template>
+            </td>
+            <td *ngIf="activeTab === 'pausados'" class="px-4 py-4 text-sm text-gray-600">
+              {{ formatDate(project.fechaPausado) }}
+            </td>
+            <td *ngIf="activeTab === 'eliminados'" class="px-4 py-4 text-sm text-gray-700">
+              <div *ngIf="project.eliminadoPor; else noDataEliminado">
+                {{ project.eliminadoPor.primerNombre }} {{ project.eliminadoPor.primerApellido }}
+              </div>
+              <ng-template #noDataEliminado><span class="text-gray-400">N/A</span></ng-template>
+            </td>
+            <td *ngIf="activeTab === 'eliminados'" class="px-4 py-4 text-sm text-gray-600">
+              {{ formatDate(project.fechaEliminado) }}
+            </td>
+            <td class="px-4 py-4">
+              <div class="flex items-center gap-2 flex-wrap">
+                <a
+                  [routerLink]="['/admin/project', project.id, 'resumen']"
+                  class="bg-primary-500 hover:bg-primary-600 px-3 py-1.5 rounded-lg text-white font-medium text-xs transition-colors flex items-center gap-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                  Ver Resumen
+                </a>
+
+                <!-- Show if not deleted -->
+                <ng-container *ngIf="!project.eliminado">
+                  <a
+                    [routerLink]="['/admin/project', project.id, 'edit-details']"
+                    class="text-blue-600 hover:text-blue-700 font-medium text-xs transition-colors">
+                    Editar
+                  </a>
+                  <button
+                    (click)="openChangeEstadoModal(project, $event)"
+                    class="text-purple-600 hover:text-purple-700 font-medium text-xs transition-colors">
+                    Cambiar Estado
+                  </button>
+                  <button
+                    (click)="downloadReport(project.id, $event)"
+                    class="text-green-600 hover:text-green-700 font-medium text-xs transition-colors">
+                    Reporte
+                  </button>
+                  <button
+                    (click)="softDeleteProject(project, $event)"
+                    class="text-red-600 hover:text-red-700 font-medium text-xs transition-colors">
+                    Eliminar
+                  </button>
+                </ng-container>
+
+                <!-- Show message if deleted (no restore button) -->
+                <ng-container *ngIf="project.eliminado">
+                  <span class="text-xs text-gray-500 italic">
+                    Proyecto eliminado permanentemente
+                  </span>
+                </ng-container>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!loading && filteredProjects.length === 0" class="text-center py-12 px-6">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+      </svg>
+      <h3 class="text-lg font-semibold text-gray-600 mb-2">No se encontraron proyectos</h3>
+      <p class="text-gray-500 mb-4">
+        {{ searchTerm ? 'No hay proyectos que coincidan con tu búsqueda' : 'No hay proyectos en esta categoría' }}
+      </p>
+      <button
+        *ngIf="!searchTerm"
+        [routerLink]="['/admin/create-project']"
+        class="bg-primary-500 hover:bg-primary-600 px-6 py-2 rounded-lg text-white font-medium transition-colors">
+        Crear Primer Proyecto
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Cambiar Estado - Phase 3 -->
+<div *ngIf="showChangeEstadoModal" class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-50" (click)="closeChangeEstadoModal()">
+  <div class="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 transform transition-all" (click)="$event.stopPropagation()">
+    <div class="p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-xl font-bold text-gray-800">Cambiar Estado del Proyecto</h3>
+        <button
+          (click)="closeChangeEstadoModal()"
+          class="text-gray-400 hover:text-gray-600 transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <div class="mb-6">
+        <div class="bg-gray-50 rounded-lg p-4 mb-4">
+          <p class="text-sm text-gray-600 mb-1">Proyecto:</p>
+          <p class="font-semibold text-gray-800">{{ selectedProject?.nombre }}</p>
+          <p class="text-sm text-gray-600 mt-2 mb-1">Estado actual:</p>
+          <span class="inline-block px-3 py-1 rounded-full text-xs font-medium" [ngClass]="getEstadoBadgeClass(selectedProject?.estado)">
+            {{ selectedProject?.estado }}
+          </span>
+        </div>
+
+        <label class="block text-sm font-semibold text-gray-700 mb-2">
+          Nuevo estado:
+        </label>
+        <select
+          [(ngModel)]="selectedEstado"
+          class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all text-gray-700">
+          <option value="Abierto">Abierto</option>
+          <option value="En Progreso">En Progreso</option>
+          <option value="Completado">Completado</option>
+          <option value="Archivado">Archivado</option>
+          <option value="Pausado">Pausado</option>
+        </select>
+      </div>
+
+      <div class="flex gap-3 justify-end">
+        <button
+          (click)="closeChangeEstadoModal()"
+          class="px-5 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium">
+          Cancelar
+        </button>
+        <button
+          (click)="confirmChangeEstado()"
+          [disabled]="!selectedEstado"
+          class="px-5 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors font-medium shadow-lg hover:shadow-xl">
+          Confirmar Cambio
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

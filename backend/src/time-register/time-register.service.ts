@@ -5,17 +5,58 @@ import { Repository } from 'typeorm';
 import { UpdateTimeRegisterDto } from './dto/update-time-register.dto';
 import { CreateTimeRegisterDto } from './dto/create-time-register.dto';
 import { TimeRegister } from './entities/time-register.entity';
+import { NotificationsService } from '../notifications/notifications.service';
+import { Task } from '../tasks/entities/task.entity';
+import { User } from '../users/entities/user.entity';
 
 @Injectable()
 export class TimeRegisterService {
   constructor(
     @InjectRepository(TimeRegister)
     private readonly repo: Repository<TimeRegister>,
+    @InjectRepository(Task)
+    private readonly taskRepo: Repository<Task>,
+    @InjectRepository(User)
+    private readonly userRepo: Repository<User>,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
-  create(dto: CreateTimeRegisterDto) {
+  async create(dto: CreateTimeRegisterDto) {
     const register = this.repo.create(dto);
-    return this.repo.save(register);
+    const saved = await this.repo.save(register);
+
+    // Fetch task with project relation to get project creator
+    const task = await this.taskRepo.findOne({
+      where: { id: dto.taskId },
+      relations: ['project'],
+    });
+
+    if (task && task.project) {
+      // Get the user who registered the time
+      const user = await this.userRepo.findOne({
+        where: { id: dto.userId },
+      });
+
+      // Create notification for project creator (leader)
+      const projectLeaderId = task.project.creadoPorId;
+
+      // Only create notification if the user registering time is not the project leader
+      if (projectLeaderId && projectLeaderId !== dto.userId) {
+        const userName = user
+          ? `${user.primerNombre} ${user.primerApellido}`
+          : 'Un usuario';
+        const message = `${userName} ha registrado tiempo en la tarea "${task.nombre}"`;
+
+        await this.notificationsService.create({
+          userId: projectLeaderId,
+          mensaje: message,
+          tipo: 'registro_tiempo',
+          leida: false,
+        });
+      }
+    }
+
+    return saved;
   }
 
   findAll() {

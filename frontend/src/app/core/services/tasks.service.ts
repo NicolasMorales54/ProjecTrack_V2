@@ -78,6 +78,10 @@ export class TasksService {
     return this.http.patch<Task>(`${this.apiUrl}/${id}`, updateTaskDto);
   }
 
+  updateTask(id: number, updateTaskDto: UpdateTaskDto): Observable<Task> {
+    return this.update(id, updateTaskDto);
+  }
+
   remove(id: number): Observable<Task> {
     return this.http.delete<Task>(`${this.apiUrl}/${id}`);
   }

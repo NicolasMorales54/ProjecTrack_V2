@@ -14,7 +14,6 @@ import { Notification } from '../../../core/model/notification.model';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './notifications.component.html',
-  styleUrl: './notifications.component.css',
 })
 export class NotificationsComponent {
   notifications: Notification[] = [];

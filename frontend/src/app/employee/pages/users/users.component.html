@@ -11,6 +11,7 @@
       <div class="mb-2 font-semibold text-primary-600 text-sm">{{ user.rol }}</div>
       <div class="mb-4 text-gray-500 text-center">{{ user.correoElectronico }}</div>
       <button
+        (click)="contactUser(user)"
         class="bg-primary-600 hover:bg-primary-700 shadow mb-2 px-6 py-2 rounded-full font-semibold text-white transition-colors duration-200">Contactar</button>
       <div class="flex items-center mt-2 text-gray-400 text-xs">
         <svg class="mr-1 w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">

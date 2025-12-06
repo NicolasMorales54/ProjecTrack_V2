@@ -19,6 +19,11 @@ import { TasksModule } from './tasks/tasks.module';
 import { AppController } from './app.controller';
 import { AuthModule } from './auth/auth.module';
 import { AppService } from './app.service';
+import { ProjectResourcesModule } from './project-resources/project-resources.module';
+import { TaskFilesModule } from './task-files/task-files.module';
+import { SubtaskFilesModule } from './subtask-files/subtask-files.module';
+import { ProjectPlanningModule } from './project-planning/project-planning.module';
+import { ProjectMilestonesModule } from './project-milestones/project-milestones.module';
 
 @Module({
   imports: [
@@ -31,6 +36,9 @@ import { AppService } from './app.service';
     EmailsModule,
     AuthModule,
     PassportModule,
+    ProjectResourcesModule,
+    TaskFilesModule,
+    SubtaskFilesModule,
     TypeOrmModule.forRoot({
       type: 'mysql',
       host: process.env.DB_HOST || 'localhost',
@@ -42,6 +50,8 @@ import { AppService } from './app.service';
       synchronize: false,
       entities: [User, Task, Project],
     }),
+    ProjectPlanningModule,
+    ProjectMilestonesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

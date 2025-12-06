@@ -1,0 +1,72 @@
+<div class="cronograma-container mx-auto p-6 container">
+  <div class="mb-6">
+    <h1 class="mb-2 font-bold text-black text-2xl">Cronograma del Proyecto</h1>
+    <p class="text-gray-600">{{ projectName }}</p>
+  </div>
+
+  <div *ngIf="loading" class="flex justify-center items-center py-20">
+    <div class="border-b-2 border-blue-500 rounded-full w-12 h-12 animate-spin"></div>
+  </div>
+
+  <div *ngIf="!loading && data.length === 0" class="bg-white shadow-lg rounded-xl p-6">
+    <div class="flex flex-col items-center justify-center py-20">
+      <svg class="w-20 h-20 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+      </svg>
+      <h3 class="text-lg font-semibold text-gray-900 mb-2">No hay tareas para mostrar</h3>
+      <p class="text-gray-500 text-sm text-center max-w-md">
+        Este proyecto aún no tiene tareas creadas. Agrega tareas al proyecto para visualizar el cronograma.
+      </p>
+    </div>
+  </div>
+
+  <div *ngIf="!loading && data.length > 0" class="bg-white shadow-lg rounded-xl p-6" style="min-height: 700px;">
+    <div class="mb-4">
+      <p class="text-gray-700 text-sm">
+        Visualiza y gestiona el cronograma de tareas e hitos del proyecto.
+        Puedes ajustar las fechas arrastrando las barras de tareas.
+      </p>
+    </div>
+
+    <div style="width: 100%; height: 600px;">
+      <ejs-gantt
+        #gantt
+        [dataSource]="data"
+        [taskFields]="taskSettings"
+        [editSettings]="editSettings"
+        [toolbar]="toolbar"
+        [timelineSettings]="timelineSettings"
+        [splitterSettings]="splitterSettings"
+        [labelSettings]="labelSettings"
+        [columns]="columns"
+        (taskbarEdited)="onTaskbarEdited($event)"
+        (toolbarClick)="onToolbarClick($event)"
+        height="100%"
+        width="100%"
+        locale="es">
+      </ejs-gantt>
+    </div>
+
+    <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="flex items-center gap-2">
+        <div class="bg-blue-500 rounded w-4 h-4"></div>
+        <span class="text-gray-700 text-sm">Tareas pendientes</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <div class="bg-green-500 rounded w-4 h-4"></div>
+        <span class="text-gray-700 text-sm">Tareas completadas</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <div class="bg-purple-500 rounded w-4 h-4"></div>
+        <span class="text-gray-700 text-sm">Hitos (Milestones)</span>
+      </div>
+    </div>
+
+    <div class="mt-4 p-4 bg-blue-50 border-l-4 border-blue-500 rounded">
+      <p class="text-blue-800 text-sm">
+        <strong>Tip:</strong> Usa los controles de zoom para ajustar la vista temporal.
+        Puedes exportar el cronograma a Excel o PDF usando los botones de la barra de herramientas.
+      </p>
+    </div>
+  </div>
+</div>

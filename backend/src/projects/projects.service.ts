@@ -7,6 +7,8 @@ import { UsuarioProyecto } from './entities/usuario-proyecto.entity';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { Project } from './entities/project.entity';
+import { ProjectHistory } from './entities/project-history.entity';
+import { NotificationsGateway } from '../notifications/notifications.gateway';
 
 @Injectable()
 export class ProjectsService {
@@ -15,29 +17,101 @@ export class ProjectsService {
     private readonly projectRepository: Repository<Project>,
     @InjectRepository(UsuarioProyecto)
     private readonly usuarioProyectoRepository: Repository<UsuarioProyecto>,
+    @InjectRepository(ProjectHistory)
+    private readonly projectHistoryRepository: Repository<ProjectHistory>,
+    private readonly notificationsGateway: NotificationsGateway,
   ) {}
 
-  create(dto: CreateProjectDto) {
+  async create(dto: CreateProjectDto) {
     const project = this.projectRepository.create(dto);
-    return this.projectRepository.save(project);
+    const savedProject = await this.projectRepository.save(project);
+
+    // Registrar en historial
+    await this.addToHistory(
+      savedProject.id,
+      'creado',
+      `Proyecto "${savedProject.nombre}" creado`,
+      dto.creadoPorId,
+    );
+
+    return savedProject;
   }
 
   findAll() {
-    return this.projectRepository.find({ relations: ['creadoPor'] });
+    return this.projectRepository.find({
+      relations: [
+        'creadoPor',
+        'archivadoPor',
+        'eliminadoPor',
+        'pausadoPor',
+      ],
+    });
   }
 
   async findOne(id: number) {
     const project = await this.projectRepository.findOne({
       where: { id },
-      relations: ['creadoPor'],
+      relations: [
+        'creadoPor',
+        'archivadoPor',
+        'eliminadoPor',
+        'pausadoPor',
+      ],
     });
     if (!project) throw new NotFoundException(`Project ${id} not found`);
     return project;
   }
 
-  async update(id: number, dto: UpdateProjectDto) {
+  async update(id: number, dto: UpdateProjectDto, usuarioId?: number) {
+    const oldProject = await this.findOne(id);
     await this.projectRepository.update(id, dto);
-    return this.findOne(id);
+    const updatedProject = await this.findOne(id);
+
+    // Registrar cambios en el historial
+    const cambios: string[] = [];
+    const dtoAny = dto as any; // Type assertion to access properties
+
+    if (dtoAny.nombre && dtoAny.nombre !== oldProject.nombre) {
+      cambios.push(`Nombre cambiado de "${oldProject.nombre}" a "${dtoAny.nombre}"`);
+    }
+    if (dtoAny.estado && dtoAny.estado !== oldProject.estado) {
+      cambios.push(`Estado cambiado de "${oldProject.estado}" a "${dtoAny.estado}"`);
+    }
+    if (dtoAny.fechaInicio) {
+      cambios.push(`Fecha de inicio actualizada`);
+    }
+    if (dtoAny.fechaFin) {
+      cambios.push(`Fecha de fin actualizada`);
+    }
+
+    if (cambios.length > 0) {
+      await this.addToHistory(
+        id,
+        'actualizado',
+        cambios.join(', '),
+        usuarioId,
+      );
+
+      // Notificar a todos los usuarios del proyecto sobre el cambio
+      const usuariosProyecto = await this.usuarioProyectoRepository.find({
+        where: { proyectoId: id },
+      });
+      const descripcionCambios = cambios.join(', ');
+
+      for (const up of usuariosProyecto) {
+        // No notificar al usuario que hizo el cambio
+        if (up.usuarioId !== usuarioId) {
+          await this.notificationsGateway.notifyProjectUpdate(
+            up.usuarioId,
+            id,
+            'actualizado',
+            descripcionCambios,
+          );
+        }
+      }
+    }
+
+    return updatedProject;
   }
 
   async remove(id: number) {
@@ -140,5 +214,149 @@ export class ProjectsService {
       userIdsInProject.length > 0 ? { id: Not(In(userIdsInProject)) } : {};
     const users = await usersRepo.find({ where });
     return users;
+  }
+
+  async updateProjectUserRole(
+    proyectoId: number,
+    usuarioId: number,
+    rolEnProyecto: string,
+  ) {
+    const usuarioProyecto = await this.usuarioProyectoRepository.findOne({
+      where: { proyectoId, usuarioId },
+    });
+
+    if (!usuarioProyecto) {
+      throw new NotFoundException(
+        `User ${usuarioId} not found in project ${proyectoId}`,
+      );
+    }
+
+    usuarioProyecto.rolEnProyecto = rolEnProyecto as any;
+    return this.usuarioProyectoRepository.save(usuarioProyecto);
+  }
+
+  async removeUserFromProject(proyectoId: number, usuarioId: number) {
+    const usuarioProyecto = await this.usuarioProyectoRepository.findOne({
+      where: { proyectoId, usuarioId },
+    });
+
+    if (!usuarioProyecto) {
+      throw new NotFoundException(
+        `User ${usuarioId} not found in project ${proyectoId}`,
+      );
+    }
+
+    return this.usuarioProyectoRepository.remove(usuarioProyecto);
+  }
+
+  // ============ HISTORIAL DE PROYECTOS ============
+
+  async addToHistory(
+    proyectoId: number,
+    accion: string,
+    descripcion: string,
+    usuarioId?: number,
+  ): Promise<ProjectHistory> {
+    const historyEntry = this.projectHistoryRepository.create({
+      proyectoId,
+      accion,
+      descripcion,
+      usuarioId,
+    });
+    return await this.projectHistoryRepository.save(historyEntry);
+  }
+
+  async getProjectHistory(proyectoId: number): Promise<ProjectHistory[]> {
+    return await this.projectHistoryRepository.find({
+      where: { proyectoId },
+      relations: ['usuario'],
+      order: { fecha: 'DESC' },
+    });
+  }
+
+  // Phase 3: Soft Delete
+  async softDelete(id: number, usuarioId: number) {
+    const project = await this.findOne(id);
+    project.eliminado = true;
+    project.eliminadoPorId = usuarioId;
+    project.fechaEliminado = new Date();
+    const updated = await this.projectRepository.save(project);
+
+    // Registrar en historial
+    await this.addToHistory(
+      id,
+      'eliminado',
+      `Proyecto "${project.nombre}" marcado como eliminado`,
+      usuarioId,
+    );
+
+    return updated;
+  }
+
+  // Phase 3: Change Estado
+  async changeEstado(id: number, nuevoEstado: string, usuarioId: number) {
+    const project = await this.projectRepository.findOne({
+      where: { id },
+      relations: ['creadoPor'],
+    });
+
+    if (!project) {
+      throw new NotFoundException(`Project ${id} not found`);
+    }
+
+    const estadoAnterior = project.estado;
+    const updateData: any = { estado: nuevoEstado };
+
+    // Registrar auditoría según el nuevo estado
+    if (nuevoEstado === 'Archivado') {
+      updateData.archivadoPorId = usuarioId;
+      updateData.fechaArchivado = new Date();
+    } else if (nuevoEstado === 'Pausado') {
+      updateData.pausadoPorId = usuarioId;
+      updateData.fechaPausado = new Date();
+    }
+
+    // Update using repository update to avoid TypeORM casting issues
+    await this.projectRepository.update(id, updateData);
+
+    // Registrar en historial
+    await this.addToHistory(
+      id,
+      'cambio_estado',
+      `Estado cambiado de "${estadoAnterior}" a "${nuevoEstado}"`,
+      usuarioId,
+    );
+
+    // Return updated project
+    return await this.findOne(id);
+  }
+
+  // FASE 6: Timeline endpoint - obtiene tareas y hitos ordenados cronológicamente
+  async getTimeline(projectId: number) {
+    const project = await this.findOne(projectId);
+
+    // Obtener tareas del proyecto ordenadas por fecha
+    const projectWithTasks = await this.projectRepository
+      .createQueryBuilder('p')
+      .leftJoinAndSelect('p.tareas', 't')
+      .where('p.id = :projectId', { projectId })
+      .select([
+        'p.id',
+        't.id',
+        't.nombre',
+        't.descripcion',
+        't.fechaInicio',
+        't.fechaVencimiento',
+        't.estado',
+        't.prioridad',
+      ])
+      .orderBy('t.fechaInicio', 'ASC')
+      .getOne();
+
+    return {
+      projectId: project.id,
+      projectName: project.nombre,
+      tasks: (projectWithTasks as any)?.tareas || [],
+    };
   }
 }

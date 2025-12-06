@@ -12,10 +12,7 @@
       <div class="mb-4 text-black text-center">{{ user.correoElectronico }}</div>
       <div class="flex gap-2 mb-2">
         <button
-          class="bg-primary-600 hover:bg-primary-700 shadow px-4 py-2 rounded-full font-semibold text-black transition-colors duration-200"
-          (click)="openEditModal(user)">Editar</button>
-        <button
-          class="bg-primary-600 hover:bg-primary-700 shadow px-4 py-2 rounded-full font-semibold text-black transition-colors duration-200"
+          class="bg-primary-600 hover:bg-primary-700 shadow px-4 py-2 rounded-full font-semibold text-white transition-colors duration-200"
           (click)="contactUser(user)">Contactar</button>
       </div>
       <div class="flex items-center mt-2 text-gray-400 text-xs">
@@ -32,14 +29,12 @@
   </ng-template>
   <div class="flex justify-end mb-4">
     <button (click)="openAssignModal()"
-      class="bg-primary-600 hover:bg-primary-700 shadow px-6 py-2 rounded-full font-semibold text-black transition-colors duration-200">
+      class="bg-primary-600 hover:bg-primary-700 shadow px-6 py-2 rounded-full font-semibold text-white transition-colors duration-200">
       Asignar usuario
     </button>
   </div>
   <app-modal-assign-user *ngIf="showAssignModal" [projectId]="projectId" [loading]="assignLoading"
     (assign)="handleAssignUser($event)" (closeModal)="closeAssignModal()"></app-modal-assign-user>
-  <app-modal-edit-user *ngIf="showEditModal" [user]="selectedUser" [loading]="editLoading"
-    (save)="handleEditUser($event)" (closeModal)="closeEditModal()"></app-modal-edit-user>
 </div>
 <div *ngIf="loading" class="flex justify-center items-center h-64">
   <span class="text-gray-800 text-primary-600 text-lg animate-pulse">Cargando usuarios...</span>

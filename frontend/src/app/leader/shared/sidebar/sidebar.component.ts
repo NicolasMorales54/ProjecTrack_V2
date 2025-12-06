@@ -1,7 +1,7 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, AfterViewChecked, } from '@angular/core';
-import { LucideAngularModule, Plus, ClipboardList, UserRound, SquareUserRound, } from 'lucide-angular';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { LucideAngularModule, Plus, ClipboardList, UserRound, SquareUserRound, GanttChart } from 'lucide-angular';
 import { ScrollingModule } from '@angular/cdk/scrolling';
-import { Router, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 
 import { Project, EstadoProyecto } from '../../../core/model/project.model';
@@ -27,14 +27,14 @@ interface VirtualScrollItem {
   selector: 'app-sidebar',
   imports: [LucideAngularModule, CommonModule, RouterLink, ScrollingModule],
   templateUrl: './sidebar.component.html',
-  styleUrl: './sidebar.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class SidebarComponent implements OnInit, AfterViewChecked {
+export class SidebarComponent implements OnInit {
   readonly plus = Plus;
   readonly clipboardList = ClipboardList;
   readonly userRound = UserRound;
   readonly squareUserRound = SquareUserRound;
+  readonly ganttChart = GanttChart;
   projects$: Project[] = [];
   groupedProjects: GroupedProjects[] = [];
   virtualScrollItems: VirtualScrollItem[] = [];
@@ -51,6 +51,10 @@ export class SidebarComponent implements OnInit, AfterViewChecked {
     'bg-teal-500',
     'bg-red-500',
   ];
+
+  // Track which projects are expanded (for accordion functionality)
+  expandedProjects = new Set<number>();
+
   statusConfig: {
     [key in EstadoProyecto]: { displayName: string; color: string };
   } = {
@@ -79,7 +83,6 @@ export class SidebarComponent implements OnInit, AfterViewChecked {
   constructor(
     private projectsService: ProjectsService,
     private loginService: LoginService,
-    private router: Router,
     private cdr: ChangeDetectorRef
   ) {}
 
@@ -146,16 +149,6 @@ export class SidebarComponent implements OnInit, AfterViewChecked {
     });
   }
 
-  ngAfterViewChecked(): void {
-    try {
-      if ((window as any).HSStaticMethods) {
-        (window as any).HSStaticMethods.autoInit(['accordion']);
-      }
-    } catch (error) {
-      console.error('Error initializing HSStaticMethods:', error);
-    }
-  }
-
   getColor(index: number): string {
     return this.projectColors[index % this.projectColors.length];
   }
@@ -184,11 +177,23 @@ export class SidebarComponent implements OnInit, AfterViewChecked {
     this.showCreateProjectModal = true;
   }
 
-  handleProjectCreated(project: Project) {
+  handleProjectCreated() {
     this.closeCreateProjectModal();
   }
 
   closeCreateProjectModal() {
     this.showCreateProjectModal = false;
+  }
+
+  toggleProjectAccordion(projectId: number): void {
+    if (this.expandedProjects.has(projectId)) {
+      this.expandedProjects.delete(projectId);
+    } else {
+      this.expandedProjects.add(projectId);
+    }
+  }
+
+  isProjectExpanded(projectId: number): boolean {
+    return this.expandedProjects.has(projectId);
   }
 }

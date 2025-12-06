@@ -15,7 +15,6 @@ import { EstadoProyecto } from '../../../core/model/project.model';
   selector: 'app-create-project',
   templateUrl: './create-project.component.html',
   imports: [CommonModule, ReactiveFormsModule],
-  styleUrl: './create-project.component.css',
 })
 export class CreateProjectComponent implements OnInit {
   form: FormGroup;

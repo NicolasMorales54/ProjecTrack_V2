@@ -1,11 +1,13 @@
-import { LucideAngularModule, Bell, Mail } from 'lucide-angular';
+import { LucideAngularModule, Mail } from 'lucide-angular';
 import { ChangeDetectorRef, Component } from '@angular/core';
-import { CommonModule, NgIf } from '@angular/common';
-import { RouterOutlet, RouterLink } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { RouterOutlet, Router } from '@angular/router';
 
-import { NotificationsComponent } from './shared/notifications/notifications.component';
-import { NotificationsService } from '../core/services/notifications.service';
 import { SidebarComponent } from './shared/sidebar/sidebar.component';
+import { SettingsDropdownComponent } from '../shared/components/settings-dropdown/settings-dropdown.component';
+import { UserDropdownComponent } from '../shared/components/user-dropdown/user-dropdown.component';
+import { NotificationsDropdownComponent } from '../shared/components/notifications-dropdown/notifications-dropdown.component';
+import { ModalChangePasswordComponent } from '../shared/modals/modal-change-password/modal-change-password.component';
 
 
 @Component({
@@ -14,45 +16,35 @@ import { SidebarComponent } from './shared/sidebar/sidebar.component';
   imports: [
     SidebarComponent,
     RouterOutlet,
-    RouterLink,
-    NotificationsComponent,
+    NotificationsDropdownComponent,
     CommonModule,
-    NgIf,
     LucideAngularModule,
+    SettingsDropdownComponent,
+    UserDropdownComponent,
+    ModalChangePasswordComponent,
   ],
   templateUrl: './client.component.html',
-  styleUrl: './client.component.css',
 })
 export class ClientComponent {
-  readonly bell = Bell;
   readonly mail = Mail;
-  showNotifications = false;
-  unreadCount = 0;
+  showChangePasswordModal = false;
 
   constructor(
-    private notificationsService: NotificationsService,
-    private cdRef: ChangeDetectorRef
+    private cdRef: ChangeDetectorRef,
+    private router: Router
   ) {}
 
-  ngOnInit() {
-    this.loadUnreadCount();
+  goToInbox() {
+    this.router.navigate(['/client/inbox']);
+  }
+
+  openChangePasswordModal() {
+    this.showChangePasswordModal = true;
     this.cdRef.detectChanges();
   }
 
-  toggleNotifications() {
-    this.showNotifications = !this.showNotifications;
-    if (this.showNotifications) {
-      this.loadUnreadCount();
-    }
+  closeChangePasswordModal() {
+    this.showChangePasswordModal = false;
     this.cdRef.detectChanges();
-  }
-
-  loadUnreadCount() {
-    this.notificationsService
-      .findMyNotifications()
-      .subscribe((notifications) => {
-        this.unreadCount = notifications.filter((n) => !n.leida).length;
-        this.cdRef.detectChanges();
-      });
   }
 }

@@ -15,8 +15,8 @@ import {
 import { ProjectUsersService } from '../../../core/services/project-users.service';
 import { UsersExtraService } from '../../../core/services/users-extra.service';
 import { ProjectsService } from '../../../core/services/projects.service';
+import { ModalChangeProjectRoleComponent } from './modal-change-project-role.component';
 import { ModalAssignUserComponent } from './modal-assign-user.component';
-import { ModalEditUserComponent } from './modal-edit-user.component';
 import { UsersService } from '../../../core/services/users.service';
 import { Project } from '../../../core/model/project.model';
 import { User } from '../../../core/model/user.model';
@@ -24,9 +24,12 @@ import { User } from '../../../core/model/user.model';
 @Component({
   selector: 'app-users',
   standalone: true,
-  imports: [CommonModule, ModalAssignUserComponent, ModalEditUserComponent],
+  imports: [
+    CommonModule,
+    ModalAssignUserComponent,
+    ModalChangeProjectRoleComponent,
+  ],
   templateUrl: './users.component.html',
-  styleUrl: './users.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class UsersComponent implements OnInit {
@@ -39,10 +42,10 @@ export class UsersComponent implements OnInit {
   assignLoading = false;
   assignError: string | null = null;
 
-  showEditModal = false;
-  editLoading = false;
-  editError: string | null = null;
+  showChangeRoleModal = false;
+  changeRoleLoading = false;
   selectedUser: User | null = null;
+  selectedUserCurrentRole: string = '';
 
   private usersService = inject(UsersService);
   private usersExtraService = inject(UsersExtraService);
@@ -77,7 +80,7 @@ export class UsersComponent implements OnInit {
                 id: u.id,
                 nombre: u.primerNombre || u.nombre || u.nombreUsuario || '',
                 correoElectronico: u.correoElectronico || '',
-                rol: u.rol || u.rolEnProyecto || '',
+                rol: u.rolEnProyecto || u.rol || '', // Use rolEnProyecto first (project role), fallback to global role
                 createdAt: u.createdAt || u.fechaRegistro || '',
               };
             });
@@ -121,7 +124,7 @@ export class UsersComponent implements OnInit {
               id: u.id,
               nombre: u.primerNombre || u.nombre || u.nombreUsuario || '',
               correoElectronico: u.correoElectronico || '',
-              rol: u.rol || u.rolEnProyecto || '',
+              rol: u.rolEnProyecto || u.rol || '', // Use rolEnProyecto first
               createdAt: u.createdAt || u.fechaRegistro || '',
             }));
             this.cdr.markForCheck();
@@ -141,58 +144,73 @@ export class UsersComponent implements OnInit {
     this.assignError = null;
   }
 
-  openEditModal(user: User) {
+  openChangeRoleModal(user: User) {
     this.selectedUser = user;
-    this.showEditModal = true;
-    this.editLoading = false;
-    this.editError = null;
+    this.selectedUserCurrentRole = user.rol || ''; // This is the project role
+    this.showChangeRoleModal = true;
+    this.changeRoleLoading = false;
     this.cdr.markForCheck();
   }
 
-  handleEditUser(data: any) {
-    if (!data.id) return;
-    this.editLoading = true;
-    this.editError = null;
-    // Only update name, email, and role in project
-    const updateDto = {
-      nombre: data.nombre,
-      correoElectronico: data.correoElectronico,
-      rol: data.rolEnProyecto,
-    };
-    this.usersService.update(data.id, updateDto).subscribe({
+  handleChangeRole(newRole: string) {
+    if (!this.selectedUser || !this.projectId) return;
+    this.changeRoleLoading = true;
+    this.projectsService
+      .updateProjectUserRole(this.projectId, this.selectedUser.id, newRole)
+      .subscribe({
+        next: () => {
+          this.showChangeRoleModal = false;
+          this.changeRoleLoading = false;
+          // Refresh users list
+          if (this.projectId) {
+            this.usersService
+              .findByProjectId(this.projectId)
+              .subscribe((users: any[]) => {
+                this.users = users.map((u) => ({
+                  id: u.id,
+                  nombre: u.primerNombre || u.nombre || u.nombreUsuario || '',
+                  correoElectronico: u.correoElectronico || '',
+                  rol: u.rolEnProyecto || u.rol || '', // Use rolEnProyecto first
+                  createdAt: u.createdAt || u.fechaRegistro || '',
+                }));
+                this.cdr.markForCheck();
+              });
+          }
+          this.cdr.markForCheck();
+        },
+        error: () => {
+          this.changeRoleLoading = false;
+          alert('No se pudo cambiar el rol del usuario en el proyecto.');
+          this.cdr.markForCheck();
+        },
+      });
+  }
+
+  closeChangeRoleModal() {
+    this.showChangeRoleModal = false;
+    this.selectedUser = null;
+    this.selectedUserCurrentRole = '';
+    this.cdr.markForCheck();
+  }
+
+  removeUserFromProject(user: User) {
+    if (!this.projectId) return;
+
+    if (!confirm(`¿Está seguro de remover a ${user.nombre || user.correoElectronico} del proyecto?`)) {
+      return;
+    }
+
+    this.projectsService.removeUserFromProject(this.projectId, user.id).subscribe({
       next: () => {
-        this.showEditModal = false;
-        this.editLoading = false;
-        // Refresh users list
-        if (this.projectId) {
-          this.usersService
-            .findByProjectId(this.projectId)
-            .subscribe((users: any[]) => {
-              this.users = users.map((u) => ({
-                id: u.id,
-                nombre: u.primerNombre || u.nombre || u.nombreUsuario || '',
-                correoElectronico: u.correoElectronico || '',
-                rol: u.rol || u.rolEnProyecto || '',
-                createdAt: u.createdAt || u.fechaRegistro || '',
-              }));
-              this.cdr.markForCheck();
-            });
-        }
+        // Remove user from the list
+        this.users = this.users.filter(u => u.id !== user.id);
         this.cdr.markForCheck();
       },
       error: (err) => {
-        this.editError = 'No se pudo editar el usuario.';
-        this.editLoading = false;
-        this.cdr.markForCheck();
+        alert('No se pudo remover el usuario del proyecto.');
+        console.error('Error removing user from project:', err);
       },
     });
-  }
-
-  closeEditModal() {
-    this.showEditModal = false;
-    this.editError = null;
-    this.selectedUser = null;
-    this.cdr.markForCheck();
   }
 
   contactUser(user: User) {

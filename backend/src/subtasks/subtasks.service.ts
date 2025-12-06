@@ -4,6 +4,7 @@ import { Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
 
 import { AsignacionSubtarea } from './entities/asignacion-subtarea.entity';
+import { NotificationsGateway } from '../notifications/notifications.gateway';
 import { UpdateSubtaskDto } from './dto/update-subtask.dto';
 import { CreateSubtaskDto } from './dto/create-subtask.dto';
 import { Subtask } from './entities/subtask.entity';
@@ -15,6 +16,7 @@ export class SubtasksService {
     private readonly subtaskRepository: Repository<Subtask>,
     @InjectRepository(AsignacionSubtarea)
     private readonly asignacionSubtareaRepository: Repository<AsignacionSubtarea>,
+    private readonly notificationsGateway: NotificationsGateway,
   ) {}
 
   create(createSubtaskDto: CreateSubtaskDto) {
@@ -33,12 +35,42 @@ export class SubtasksService {
     return `This action updates a #${id} subtask`;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} subtask`;
+  async remove(id: number) {
+    // Las asignaciones se eliminarán automáticamente por CASCADE
+    const subtask = await this.subtaskRepository.findOne({ where: { id } });
+    if (!subtask) {
+      throw new Error('Subtarea no encontrada');
+    }
+    await this.subtaskRepository.remove(subtask);
+    return { message: 'Subtarea eliminada exitosamente' };
   }
 
   async findByTaskId(taskId: number) {
     return this.subtaskRepository.find({ where: { taskId } });
+  }
+
+  async findByTaskIdWithAssignments(taskId: number) {
+    const subtasks = await this.subtaskRepository.find({
+      where: { taskId },
+      order: { id: 'ASC' }
+    });
+
+    // Obtener asignaciones para cada subtarea
+    const subtasksWithAssignments = await Promise.all(
+      subtasks.map(async (subtask) => {
+        const assignments = await this.asignacionSubtareaRepository.find({
+          where: { subtaskId: subtask.id },
+          relations: ['usuario'],
+        });
+
+        return {
+          ...subtask,
+          assignedUsers: assignments.map(a => a.usuario),
+        };
+      })
+    );
+
+    return subtasksWithAssignments;
   }
 
   async findByProjectId(projectId: number) {
@@ -116,6 +148,24 @@ export class SubtasksService {
       subtaskId,
       userId,
     });
-    return this.asignacionSubtareaRepository.save(assignment);
+    const savedAssignment = await this.asignacionSubtareaRepository.save(assignment);
+
+    // Obtener información de la subtarea y la tarea padre
+    const subtask = await this.subtaskRepository.findOne({
+      where: { id: subtaskId },
+      relations: ['task'],
+    });
+
+    if (subtask && subtask.task) {
+      // Emitir notificación al usuario asignado
+      await this.notificationsGateway.notifySubtaskAssigned(
+        userId,
+        subtask.id,
+        subtask.titulo,
+        subtask.task.nombre,
+      );
+    }
+
+    return savedAssignment;
   }
 }

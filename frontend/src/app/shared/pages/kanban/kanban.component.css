@@ -1,0 +1,23 @@
+/* ===================================================================
+   CDK Drag & Drop - Estilos esenciales para animaciones
+   =================================================================== */
+
+/* Prevenir selección de texto durante drag */
+.cdk-drag-preview * {
+  user-select: none;
+}
+
+/* Placeholder mientras se arrastra */
+.cdk-drag-placeholder {
+  opacity: 0.4;
+}
+
+/* Animación suave al soltar */
+.cdk-drag-animating {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+/* Reordenar items dentro de la misma lista */
+.cdk-drop-list-dragging .cdk-drag:not(.cdk-drag-placeholder) {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}

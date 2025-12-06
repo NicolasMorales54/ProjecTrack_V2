@@ -50,4 +50,23 @@ export class UsersService {
   findByProjectId(projectId: number): Observable<User[]> {
     return this.http.get<User[]>(`${this.apiUrl}/by-project/${projectId}`);
   }
+
+  changePassword(
+    userId: number,
+    currentPassword: string,
+    newPassword: string
+  ): Observable<any> {
+    return this.http.patch(`${this.apiUrl}/${userId}/password`, {
+      currentPassword,
+      newPassword,
+    });
+  }
+
+  findByRole(role: string): Observable<User[]> {
+    return this.http.get<User[]>(`${this.apiUrl}/by-role/${role}`);
+  }
+
+  updateRole(id: number, rol: string): Observable<User> {
+    return this.http.patch<User>(`${this.apiUrl}/${id}/role`, { rol });
+  }
 }

@@ -2,7 +2,7 @@ export interface Notification {
   id: number;
   userId: number;
   mensaje: string;
-  tipo?: string;
+  tipo: string;
   fechaCreacion: Date;
   leida: boolean;
   usuario?: any;

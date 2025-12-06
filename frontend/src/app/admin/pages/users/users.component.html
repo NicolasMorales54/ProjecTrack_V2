@@ -10,12 +10,15 @@
       <div class="mb-1 font-bold text-black text-xl">{{ user.nombre }}</div>
       <div class="mb-2 font-semibold text-black text-primary-600 text-sm">{{ user.rol }}</div>
       <div class="mb-4 text-black text-center">{{ user.correoElectronico }}</div>
-      <div class="flex gap-2 mb-2">
+      <div class="flex flex-col gap-2 mb-2 w-full">
         <button
-          class="bg-primary-600 hover:bg-primary-700 shadow px-4 py-2 rounded-full font-semibold text-black transition-colors duration-200"
-          (click)="openEditModal(user)">Editar</button>
+          class="bg-purple-500 hover:bg-purple-600 shadow px-4 py-2 rounded-lg font-semibold text-white transition-colors duration-200"
+          (click)="openChangeRoleModal(user)">Cambiar Rol en Proyecto</button>
         <button
-          class="bg-primary-600 hover:bg-primary-700 shadow px-4 py-2 rounded-full font-semibold text-black transition-colors duration-200"
+          class="bg-red-500 hover:bg-red-600 shadow px-4 py-2 rounded-lg font-semibold text-white transition-colors duration-200"
+          (click)="removeUserFromProject(user)">Remover del Proyecto</button>
+        <button
+          class="bg-primary-500 hover:bg-primary-600 shadow px-4 py-2 rounded-lg font-semibold text-white transition-colors duration-200"
           (click)="contactUser(user)">Contactar</button>
       </div>
       <div class="flex items-center mt-2 text-gray-400 text-xs">
@@ -38,8 +41,9 @@
   </div>
   <app-modal-assign-user *ngIf="showAssignModal" [projectId]="projectId" [loading]="assignLoading"
     (assign)="handleAssignUser($event)" (closeModal)="closeAssignModal()"></app-modal-assign-user>
-  <app-modal-edit-user *ngIf="showEditModal" [user]="selectedUser" [loading]="editLoading"
-    (save)="handleEditUser($event)" (closeModal)="closeEditModal()"></app-modal-edit-user>
+  <app-modal-change-project-role *ngIf="showChangeRoleModal" [user]="selectedUser" [currentRole]="selectedUserCurrentRole"
+    [loading]="changeRoleLoading" (roleChanged)="handleChangeRole($event)"
+    (closeModal)="closeChangeRoleModal()"></app-modal-change-project-role>
 </div>
 <div *ngIf="loading" class="flex justify-center items-center h-64">
   <span class="text-gray-800 text-primary-600 text-lg animate-pulse">Cargando usuarios...</span>

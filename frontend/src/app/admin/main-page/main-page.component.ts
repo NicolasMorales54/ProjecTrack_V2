@@ -15,7 +15,6 @@ import { Project } from '../../core/model/project.model';
 @Component({
   selector: 'app-main-page',
   templateUrl: './main-page.component.html',
-  styleUrl: './main-page.component.css',
   imports: [CommonModule, RouterLink, ModalDeleteProjectComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

@@ -11,7 +11,6 @@ import { Email } from '../../../../core/model/email.model';
   standalone: true,
   imports: [CommonModule, RouterLink],
   templateUrl: './inbox.component.html',
-  styleUrl: './inbox.component.css',
 })
 export class InboxComponent implements OnInit {
   emails: Email[] = [];
@@ -42,6 +41,6 @@ export class InboxComponent implements OnInit {
   }
 
   openEmail(email: Email) {
-    this.router.navigate(['../conversation', email.id]);
+    this.router.navigate(['/employee/conversation', email.id]);
   }
 }

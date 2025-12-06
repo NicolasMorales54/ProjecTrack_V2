@@ -5,7 +5,7 @@ import {
   inject,
   ChangeDetectorRef,
 } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 
 import { ProjectsService } from '../../../core/services/projects.service';
@@ -18,7 +18,6 @@ import { User } from '../../../core/model/user.model';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './users.component.html',
-  styleUrl: './users.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class UsersComponent implements OnInit {
@@ -30,6 +29,7 @@ export class UsersComponent implements OnInit {
   private usersService = inject(UsersService);
   private projectsService = inject(ProjectsService);
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
 
   ngOnInit() {
@@ -72,5 +72,10 @@ export class UsersComponent implements OnInit {
         });
       }
     });
+  }
+
+  contactUser(user: User) {
+    // Navigate to send-email route for the selected user
+    this.router.navigate(['/employee/send-email', user.id]);
   }
 }

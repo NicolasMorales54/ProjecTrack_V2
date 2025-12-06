@@ -11,6 +11,7 @@ import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { User, UserState, TokenPayload } from '../../core/model/user.model';
+import { WebSocketService } from '../../core/services/websocket.service';
 import { environment } from '../../../environments/environment';
 
 export interface LoginDto {
@@ -37,7 +38,11 @@ export class LoginService {
 
   public userState$ = this.userStateSubject.asObservable();
 
-  constructor(private http: HttpClient, private router: Router) {
+  constructor(
+    private http: HttpClient,
+    private router: Router,
+    private webSocketService: WebSocketService
+  ) {
     this.loadStoredToken();
   }
   login(
@@ -99,6 +104,12 @@ export class LoginService {
           JSON.stringify(payload)
         );
 
+        // Conectar al WebSocket con el userId
+        if (payload.userId) {
+          console.log('[AuthService] Connecting to WebSocket for user:', payload.userId);
+          this.webSocketService.connect(payload.userId);
+        }
+
         return { token, userId: payload.userId, rol: payload.rol };
       }),
       catchError((error) => {
@@ -110,6 +121,11 @@ export class LoginService {
   }
 
   logout(): void {
+    console.log('[AuthService] Logging out and disconnecting WebSocket');
+
+    // Desconectar WebSocket
+    this.webSocketService.disconnect();
+
     localStorage.removeItem(this.TOKEN_KEY);
     localStorage.removeItem(this.TOKEN_KEY + '_payload');
     this.userStateSubject.next({
@@ -169,6 +185,12 @@ export class LoginService {
           JSON.stringify(userState, null, 2)
         );
         this.userStateSubject.next(userState);
+
+        // Conectar al WebSocket si el usuario está logueado
+        if (payload.userId) {
+          console.log('[AuthService] Reconnecting to WebSocket for user:', payload.userId);
+          this.webSocketService.connect(payload.userId);
+        }
       } catch (e) {
         console.error('Error parsing stored token payload:', e);
         this.logout();

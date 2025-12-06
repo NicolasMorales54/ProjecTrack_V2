@@ -5,7 +5,7 @@ import { AppComponent } from './app/app.component';
 import { appConfig } from './app/app.config';
 
 registerLicense(
-  'Ngo9BigBOggjHTQxAR8/V1NNaF5cXmBCf1FpRmJGdld5fUVHYVZUTXxaS00DNHVRdkdmWXtedXZVRGdcUEV+W0RWYUA='
+  'Ngo9BigBOggjHTQxAR8/V1NNaF5cXmBCf1FpRmJGdld5fUVHYVZUTXxaS00DNHVRdkdmWXtedXZVRGdcUEV+W0RZYUA='
 );
 
 bootstrapApplication(AppComponent, appConfig).catch((err) =>

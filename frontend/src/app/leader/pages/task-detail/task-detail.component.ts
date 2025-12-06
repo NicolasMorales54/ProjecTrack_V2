@@ -1,5 +1,5 @@
 import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -7,15 +7,17 @@ import {
   TasksService,
   Task,
   Prioridad,
+  EstadoTarea,
 } from '../../../core/services/tasks.service';
 import { TimeTrackingService } from '../../../core/services/time-tracking.service';
 import { ModalRegistrarTiempoComponent } from './modal-registrar-tiempo.component';
-import { ModalAgregarSubtareaComponent } from './modal-agregar-subtarea.component';
+import { ModalAgregarSubtareaComponent } from '../../../shared/modals/modal-agregar-subtarea/modal-agregar-subtarea.component';
 import { SubtasksService } from '../../../core/services/subtasks.service';
 import { TimeTracking } from '../../../core/model/time-tracking.model';
 import { UsersService } from '../../../core/services/users.service';
 import { Subtask } from '../../../core/model/subtask.model';
 import { User } from '../../../core/model/user.model';
+import { ModalEditTaskComponent } from '../../../shared/modals/modal-edit-task/modal-edit-task.component';
 
 @Component({
   selector: 'app-task-detail',
@@ -25,9 +27,10 @@ import { User } from '../../../core/model/user.model';
     FormsModule,
     ModalAgregarSubtareaComponent,
     ModalRegistrarTiempoComponent,
+    ModalEditTaskComponent,
   ],
   templateUrl: './task-detail.component.html',
-  styleUrl: './task-detail.component.css',
+  styles: ['/* Migrado a Tailwind CSS */'],
 })
 export class TaskDetailComponent implements OnInit {
   task: Task | null = null;
@@ -36,8 +39,10 @@ export class TaskDetailComponent implements OnInit {
   users: { [id: number]: User } = {};
   loading = true;
   Prioridad = Prioridad;
+  EstadoTarea = EstadoTarea;
 
   showPriorityMenu = false;
+  showEstadoMenu = false;
   newSubtaskTitle = '';
   newTimeStart = '';
   newTimeEnd = '';
@@ -45,6 +50,7 @@ export class TaskDetailComponent implements OnInit {
 
   showAgregarSubtareaModal = false;
   showRegistrarTiempoModal = false;
+  showEditTaskModal = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -54,7 +60,8 @@ export class TaskDetailComponent implements OnInit {
       TimeTrackingService
     ),
     private usersService: UsersService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private router: Router
   ) {}
 
   ngOnInit() {
@@ -123,6 +130,22 @@ export class TaskDetailComponent implements OnInit {
         .subscribe((updated) => {
           this.task = { ...this.task!, prioridad: priority };
           this.cdr.markForCheck();
+        });
+    }
+  }
+
+  changeEstado(estado: EstadoTarea) {
+    if (this.task) {
+      this.tasksService
+        .update(this.task.id, { estado: estado })
+        .subscribe((updated) => {
+          this.task = { ...this.task!, estado: estado };
+          this.cdr.markForCheck();
+
+          // If task is marked as completed, open time registration modal
+          if (estado === EstadoTarea.COMPLETADA) {
+            this.showRegistrarTiempoModal = true;
+          }
         });
     }
   }
@@ -222,5 +245,55 @@ export class TaskDetailComponent implements OnInit {
       this.addTimeRecord(start, end, event.notes);
     }
     this.showRegistrarTiempoModal = false;
+  }
+
+  deleteTask() {
+    if (!this.task) return;
+    if (!confirm('¿Estás seguro de que deseas eliminar esta tarea?')) return;
+    this.tasksService.remove(this.task.id).subscribe({
+      next: () => {
+        // Navigate to project kanban or task list after deletion
+        const projectId = this.task?.projectId;
+        if (projectId) {
+          this.router.navigate([`/leader/project/${projectId}/kanban`]);
+        } else {
+          this.router.navigate(['/leader/main']);
+        }
+      },
+      error: () => {
+        alert('Error al eliminar la tarea.');
+      },
+    });
+  }
+
+  openEditTaskModal() {
+    this.showEditTaskModal = true;
+  }
+
+  onTaskUpdated(updatedTask: Task) {
+    this.task = updatedTask;
+    this.showEditTaskModal = false;
+    this.cdr.markForCheck();
+  }
+
+  deleteSubtask(subtask: Subtask) {
+    if (!confirm(`¿Estás seguro de eliminar la subtarea "${subtask.titulo}"?`)) {
+      return;
+    }
+
+    this.subtasksService.deleteSubtask(subtask.id).subscribe({
+      next: () => {
+        this.subtasks = this.subtasks.filter(s => s.id !== subtask.id);
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        console.error('Error al eliminar subtarea:', err);
+        alert('Error al eliminar la subtarea');
+      }
+    });
+  }
+
+  get projectId(): number {
+    return Number(this.route.snapshot.paramMap.get('projectId'));
   }
 }

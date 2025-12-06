@@ -14,7 +14,7 @@ import { LoginService } from '../services/login.service';
   selector: 'app-login',
   imports: [CommonModule, ReactiveFormsModule, RouterLink],
   templateUrl: './login.component.html',
-  styleUrl: './login.component.css',
+  styles: ['/* Migrado a Tailwind CSS */'],
   standalone: true,
 })
 export class LoginComponent {

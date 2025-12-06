@@ -11,7 +11,6 @@ import { Project } from '../../core/model/project.model';
   selector: 'app-main-page',
   imports: [CommonModule, RouterLink],
   templateUrl: './main-page.component.html',
-  styleUrl: './main-page.component.css',
 })
 export class MainPageComponent {
   projects: any[] = [];

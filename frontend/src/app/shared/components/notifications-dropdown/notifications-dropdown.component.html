@@ -1,0 +1,151 @@
+<!-- Overlay para cerrar al hacer click fuera -->
+<div
+  *ngIf="isOpen"
+  (click)="closeDropdown()"
+  class="fixed inset-0 z-[50]"
+></div>
+
+<!-- Botón de notificaciones con badge -->
+<div class="relative">
+  <button
+    (click)="toggleDropdown()"
+    class="relative p-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+    type="button"
+  >
+    <lucide-icon [img]="Bell" [size]="20" class="text-gray-700"></lucide-icon>
+
+    <!-- Badge de contador (solo si hay no leídas) -->
+    <span
+      *ngIf="getUnreadCount() > 0"
+      class="absolute top-0 right-0 inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-bold leading-none text-white bg-red-500 rounded-full"
+    >
+      {{ getUnreadCount() > 9 ? '9+' : getUnreadCount() }}
+    </span>
+  </button>
+
+  <!-- Dropdown panel -->
+  <div
+    *ngIf="isOpen"
+    class="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-[60]"
+  >
+    <!-- Header -->
+    <div class="px-4 py-3 border-b border-gray-200">
+      <div class="flex items-center justify-between">
+        <h3 class="text-lg font-semibold text-gray-800">Notificaciones</h3>
+        <button
+          *ngIf="getUnreadCount() > 0"
+          (click)="markAllAsRead()"
+          class="text-xs text-primary-500 hover:text-primary-600 font-medium"
+          type="button"
+        >
+          <lucide-icon [img]="CheckCheck" [size]="16" class="inline mr-1"></lucide-icon>
+          Marcar todas leídas
+        </button>
+      </div>
+
+      <!-- Tabs -->
+      <div class="flex gap-4 mt-3">
+        <button
+          (click)="setTab('unread')"
+          [class.text-primary-500]="currentTab === 'unread'"
+          [class.border-b-2]="currentTab === 'unread'"
+          [class.border-primary-500]="currentTab === 'unread'"
+          [class.text-gray-500]="currentTab !== 'unread'"
+          class="pb-2 text-sm font-medium transition-colors duration-200"
+          type="button"
+        >
+          Sin leer
+          <span
+            *ngIf="getUnreadCount() > 0"
+            class="ml-1 px-2 py-0.5 text-xs bg-primary-100 text-primary-700 rounded-full"
+          >
+            {{ getUnreadCount() }}
+          </span>
+        </button>
+        <button
+          (click)="setTab('all')"
+          [class.text-primary-500]="currentTab === 'all'"
+          [class.border-b-2]="currentTab === 'all'"
+          [class.border-primary-500]="currentTab === 'all'"
+          [class.text-gray-500]="currentTab !== 'all'"
+          class="pb-2 text-sm font-medium transition-colors duration-200"
+          type="button"
+        >
+          Todas
+        </button>
+      </div>
+    </div>
+
+    <!-- Lista de notificaciones -->
+    <div class="max-h-96 overflow-y-auto">
+      <ng-container *ngIf="getDisplayedNotifications().length > 0; else emptyState">
+        <div
+          *ngFor="let notification of getDisplayedNotifications()"
+          (click)="handleNotificationClick(notification)"
+          [class.bg-gray-50]="!notification.leida"
+          [class.bg-white]="notification.leida"
+          class="px-4 py-3 border-b border-gray-100 hover:bg-gray-100 cursor-pointer transition-colors duration-150"
+        >
+          <div class="flex items-start gap-3">
+            <!-- Icono -->
+            <span class="text-2xl flex-shrink-0 mt-1">
+              {{ getNotificationIcon(notification.tipo) }}
+            </span>
+
+            <!-- Contenido -->
+            <div class="flex-1 min-w-0">
+              <p
+                [class.font-semibold]="!notification.leida"
+                [class.text-gray-900]="!notification.leida"
+                [class.text-gray-700]="notification.leida"
+                class="text-sm leading-5"
+              >
+                {{ notification.mensaje }}
+              </p>
+              <p class="text-xs text-gray-500 mt-1">
+                {{ getRelativeTime(notification.fechaCreacion) }}
+              </p>
+            </div>
+
+            <!-- Indicador de leído/no leído y botón eliminar -->
+            <div class="flex items-center gap-2 flex-shrink-0">
+              <div
+                *ngIf="!notification.leida"
+                class="w-2 h-2 bg-primary-500 rounded-full"
+                title="No leída"
+              ></div>
+              <button
+                (click)="deleteNotification($event, notification.id)"
+                class="text-gray-400 hover:text-red-500 transition-colors duration-150"
+                type="button"
+                title="Eliminar notificación"
+              >
+                <lucide-icon [img]="X" [size]="14"></lucide-icon>
+              </button>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+
+      <!-- Estado vacío -->
+      <ng-template #emptyState>
+        <div class="px-4 py-12 text-center">
+          <lucide-icon [img]="Bell" [size]="48" class="mx-auto text-gray-300 mb-3"></lucide-icon>
+          <p class="text-gray-500 text-sm">
+            {{ currentTab === 'unread' ? 'No tienes notificaciones sin leer' : 'No tienes notificaciones' }}
+          </p>
+        </div>
+      </ng-template>
+    </div>
+
+    <!-- Footer (opcional) -->
+    <div class="px-4 py-2 border-t border-gray-200 text-center">
+      <a
+        href="javascript:void(0)"
+        class="text-sm text-primary-500 hover:text-primary-600 font-medium"
+      >
+        Ver todas las notificaciones
+      </a>
+    </div>
+  </div>
+</div>

@@ -1,11 +1,14 @@
-import { LucideAngularModule, Bell, Mail } from 'lucide-angular';
+import { LucideAngularModule, Mail, Menu } from 'lucide-angular';
 import { RouterOutlet, Router } from '@angular/router';
-import { CommonModule, NgIf } from '@angular/common';
-import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Component, OnInit } from '@angular/core';
 
-import { NotificationsComponent } from './shared/notifications/notifications.component';
-import { NotificationsService } from '../core/services/notifications.service';
 import { SidebarComponent } from './shared/sidebar/sidebar.component';
+import { SettingsDropdownComponent } from '../shared/components/settings-dropdown/settings-dropdown.component';
+import { UserDropdownComponent } from '../shared/components/user-dropdown/user-dropdown.component';
+import { NotificationsDropdownComponent } from '../shared/components/notifications-dropdown/notifications-dropdown.component';
+import { ModalChangePasswordComponent } from '../shared/modals/modal-change-password/modal-change-password.component';
+import { SidebarService } from '../core/services/sidebar.service';
 
 @Component({
   standalone: true,
@@ -13,45 +16,46 @@ import { SidebarComponent } from './shared/sidebar/sidebar.component';
   imports: [
     SidebarComponent,
     RouterOutlet,
-    NotificationsComponent,
+    NotificationsDropdownComponent,
     CommonModule,
-    NgIf,
     LucideAngularModule,
+    SettingsDropdownComponent,
+    UserDropdownComponent,
+    ModalChangePasswordComponent,
   ],
   templateUrl: './admin.component.html',
-  styleUrl: './admin.component.css',
 })
-export class AdminComponent {
-  readonly bell = Bell;
+export class AdminComponent implements OnInit {
   readonly mail = Mail;
-  showNotifications = false;
-  unreadCount = 0;
+  readonly menu = Menu;
+  showChangePasswordModal = false;
+  sidebarCollapsed = false;
 
   constructor(
-    private notificationsService: NotificationsService,
-    private router: Router
+    private router: Router,
+    private sidebarService: SidebarService
   ) {}
 
   ngOnInit() {
-    this.loadUnreadCount();
-  }
-
-  toggleNotifications() {
-    this.showNotifications = !this.showNotifications;
-    if (this.showNotifications) {
-      this.loadUnreadCount();
-    }
-  }
-
-  loadUnreadCount() {
-    this.notificationsService
-      .findMyNotifications()
-      .subscribe((notifications) => {
-        this.unreadCount = notifications.filter((n) => !n.leida).length;
-      });
+    // Subscribe to sidebar state changes
+    this.sidebarService.sidebarCollapsed$.subscribe((collapsed) => {
+      this.sidebarCollapsed = collapsed;
+    });
   }
 
   goToInbox() {
     this.router.navigate(['/admin/inbox']);
+  }
+
+  openChangePasswordModal() {
+    this.showChangePasswordModal = true;
+  }
+
+  closeChangePasswordModal() {
+    this.showChangePasswordModal = false;
+  }
+
+  toggleSidebar() {
+    this.sidebarService.toggleSidebar();
   }
 }

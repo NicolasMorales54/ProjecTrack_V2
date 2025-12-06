@@ -1,56 +1,43 @@
-import { LucideAngularModule, Bell, Mail } from 'lucide-angular';
+import { LucideAngularModule, Mail } from 'lucide-angular';
 import { RouterOutlet, Router } from '@angular/router';
-import { CommonModule, NgIf } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 
-import { NotificationsComponent } from './shared/notifications/notifications.component';
-import { NotificationsService } from '../core/services/notifications.service';
 import { SidebarComponent } from './shared/sidebar/sidebar.component';
+import { SettingsDropdownComponent } from '../shared/components/settings-dropdown/settings-dropdown.component';
+import { UserDropdownComponent } from '../shared/components/user-dropdown/user-dropdown.component';
+import { NotificationsDropdownComponent } from '../shared/components/notifications-dropdown/notifications-dropdown.component';
+import { ModalChangePasswordComponent } from '../shared/modals/modal-change-password/modal-change-password.component';
 
 @Component({
   selector: 'app-leader',
   imports: [
     SidebarComponent,
     RouterOutlet,
-    NotificationsComponent,
+    NotificationsDropdownComponent,
     CommonModule,
-    NgIf,
     LucideAngularModule,
+    SettingsDropdownComponent,
+    UserDropdownComponent,
+    ModalChangePasswordComponent,
   ],
   templateUrl: './leader.component.html',
-  styleUrl: './leader.component.css',
 })
 export class LeaderComponent {
-  readonly bell = Bell;
   readonly mail = Mail;
-  showNotifications = false;
-  unreadCount = 0;
+  showChangePasswordModal = false;
 
-  constructor(
-    private notificationsService: NotificationsService,
-    private router: Router
-  ) {}
-
-  ngOnInit() {
-    this.loadUnreadCount();
-  }
-
-  toggleNotifications() {
-    this.showNotifications = !this.showNotifications;
-    if (this.showNotifications) {
-      this.loadUnreadCount();
-    }
-  }
-
-  loadUnreadCount() {
-    this.notificationsService
-      .findMyNotifications()
-      .subscribe((notifications) => {
-        this.unreadCount = notifications.filter((n) => !n.leida).length;
-      });
-  }
+  constructor(private router: Router) {}
 
   goToInbox() {
     this.router.navigate(['/leader/inbox']);
+  }
+
+  openChangePasswordModal() {
+    this.showChangePasswordModal = true;
+  }
+
+  closeChangePasswordModal() {
+    this.showChangePasswordModal = false;
   }
 }

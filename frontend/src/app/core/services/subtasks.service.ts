@@ -92,4 +92,12 @@ export class SubtasksService {
   toggleComplete(id: number, completed: boolean): Observable<Subtask> {
     return this.update(id, { completada: completed });
   }
+
+  findByTaskIdWithAssignments(taskId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/task/${taskId}/with-assignments`);
+  }
+
+  deleteSubtask(id: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${id}`);
+  }
 }

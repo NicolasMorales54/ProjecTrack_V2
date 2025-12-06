@@ -45,6 +45,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'all-projects',
+        loadComponent: () =>
+          import('./admin/all-projects/all-projects.component').then(
+            (m) => m.AllProjectsComponent
+          ),
+      },
+      {
         path: 'create-project',
         loadComponent: () =>
           import('./admin/pages/create-project/create-project.component').then(
@@ -54,14 +61,14 @@ export const routes: Routes = [
       {
         path: 'project/:projectId/resumen',
         loadComponent: () =>
-          import('./admin/pages/resumen/resumen.component').then(
+          import('./shared/pages/resumen/resumen.component').then(
             (m) => m.ResumenComponent
           ),
       },
       {
         path: 'project/:projectId/kanban',
         loadComponent: () =>
-          import('./admin/pages/kanban/kanban.component').then(
+          import('./shared/pages/kanban/kanban.component').then(
             (m) => m.KanbanComponent
           ),
       },
@@ -87,9 +94,16 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'project/:projectId/cronograma',
+        loadComponent: () =>
+          import('./shared/pages/cronograma/cronograma.component').then(
+            (m) => m.CronogramaComponent
+          ),
+      },
+      {
         path: 'inbox',
         loadComponent: () =>
-          import('./admin/shared/email/inbox/inbox.component').then(
+          import('./shared/components/email/inbox/inbox.component').then(
             (m) => m.InboxComponent
           ),
       },
@@ -97,13 +111,13 @@ export const routes: Routes = [
         path: 'conversation/:id',
         loadComponent: () =>
           import(
-            './admin/shared/email/conversation/conversation.component'
+            './shared/components/email/conversation/conversation.component'
           ).then((m) => m.ConversationComponent),
       },
       {
         path: 'send-email/:userId',
         loadComponent: () =>
-          import('./admin/shared/email/send-email/send-email.component').then(
+          import('./shared/components/email/send-email/send-email.component').then(
             (m) => m.SendEmailComponent
           ),
       },
@@ -138,7 +152,7 @@ export const routes: Routes = [
       {
         path: 'project/:projectId/resumen',
         loadComponent: () =>
-          import('./leader/pages/resumen/resumen.component').then(
+          import('./shared/pages/resumen/resumen.component').then(
             (m) => m.ResumenComponent
           ),
       },
@@ -152,7 +166,7 @@ export const routes: Routes = [
       {
         path: 'project/:projectId/kanban',
         loadComponent: () =>
-          import('./leader/pages/kanban/kanban.component').then(
+          import('./shared/pages/kanban/kanban.component').then(
             (m) => m.KanbanComponent
           ),
       },
@@ -171,6 +185,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'project/:projectId/cronograma',
+        loadComponent: () =>
+          import('./shared/pages/cronograma/cronograma.component').then(
+            (m) => m.CronogramaComponent
+          ),
+      },
+      {
         path: 'project/:projectId/users',
         loadComponent: () =>
           import('./leader/pages/users/users.component').then(
@@ -180,7 +201,7 @@ export const routes: Routes = [
       {
         path: 'inbox',
         loadComponent: () =>
-          import('./leader/shared/email/inbox/inbox.component').then(
+          import('./shared/components/email/inbox/inbox.component').then(
             (m) => m.InboxComponent
           ),
       },
@@ -188,13 +209,13 @@ export const routes: Routes = [
         path: 'conversation/:id',
         loadComponent: () =>
           import(
-            './leader/shared/email/conversation/conversation.component'
+            './shared/components/email/conversation/conversation.component'
           ).then((m) => m.ConversationComponent),
       },
       {
         path: 'send-email/:userId',
         loadComponent: () =>
-          import('./leader/shared/email/send-email/send-email.component').then(
+          import('./shared/components/email/send-email/send-email.component').then(
             (m) => m.SendEmailComponent
           ),
       },
@@ -204,6 +225,13 @@ export const routes: Routes = [
           import(
             './leader/pages/recover-password/recover-password.component'
           ).then((m) => m.RecoverPasswordComponent),
+      },
+      {
+        path: 'project/:projectId/edit-details',
+        loadComponent: () =>
+          import(
+            './admin/pages/edit-project-details/edit-project-details.component'
+          ).then((m) => m.EditProjectDetailsComponent),
       },
       // Add more leader-specific child routes here
     ],
@@ -223,23 +251,23 @@ export const routes: Routes = [
       {
         path: 'project/:projectId/resumen',
         loadComponent: () =>
-          import('./employee/pages/resumen/resumen.component').then(
+          import('./shared/pages/resumen/resumen.component').then(
             (m) => m.ResumenComponent
           ),
       },
       {
         path: 'project/:projectId/kanban',
         loadComponent: () =>
-          import('./employee/pages/kanban/kanban.component').then(
+          import('./shared/pages/kanban/kanban.component').then(
             (m) => m.KanbanComponent
           ),
       },
+      // Ruta de crear tarea deshabilitada para empleados
+      // Los empleados no pueden crear tareas
       {
         path: 'project/:projectId/create-task',
-        loadComponent: () =>
-          import('./employee/pages/create-task/create-task.component').then(
-            (m) => m.CreateTaskComponent
-          ),
+        redirectTo: 'project/:projectId/kanban',
+        pathMatch: 'full'
       },
       {
         path: 'project/:projectId/task-detail/:taskId',
@@ -258,7 +286,7 @@ export const routes: Routes = [
       {
         path: 'inbox',
         loadComponent: () =>
-          import('./employee/shared/email/inbox/inbox.component').then(
+          import('./shared/components/email/inbox/inbox.component').then(
             (m) => m.InboxComponent
           ),
       },
@@ -266,14 +294,14 @@ export const routes: Routes = [
         path: 'conversation/:id',
         loadComponent: () =>
           import(
-            './employee/shared/email/conversation/conversation.component'
+            './shared/components/email/conversation/conversation.component'
           ).then((m) => m.ConversationComponent),
       },
       {
         path: 'send-email/:userId',
         loadComponent: () =>
           import(
-            './employee/shared/email/send-email/send-email.component'
+            './shared/components/email/send-email/send-email.component'
           ).then((m) => m.SendEmailComponent),
       },
       {
@@ -302,23 +330,22 @@ export const routes: Routes = [
       {
         path: 'project/:projectId/resumen',
         loadComponent: () =>
-          import('./client/pages/resumen/resumen.component').then(
+          import('./shared/pages/resumen/resumen.component').then(
             (m) => m.ResumenComponent
           ),
       },
       {
         path: 'project/:projectId/kanban',
         loadComponent: () =>
-          import('./client/pages/kanban/kanban.component').then(
+          import('./shared/pages/kanban/kanban.component').then(
             (m) => m.KanbanComponent
           ),
       },
+      // Los clientes no pueden crear tareas
       {
         path: 'project/:projectId/create-task',
-        loadComponent: () =>
-          import('./client/pages/create-task/create-task.component').then(
-            (m) => m.CreateTaskComponent
-          ),
+        redirectTo: 'project/:projectId/kanban',
+        pathMatch: 'full',
       },
       {
         path: 'project/:projectId/task-detail/:taskId',
@@ -344,7 +371,7 @@ export const routes: Routes = [
       {
         path: 'inbox',
         loadComponent: () =>
-          import('./client/shared/email/inbox/inbox.component').then(
+          import('./shared/components/email/inbox/inbox.component').then(
             (m) => m.InboxComponent
           ),
       },
@@ -352,13 +379,13 @@ export const routes: Routes = [
         path: 'conversation/:id',
         loadComponent: () =>
           import(
-            './client/shared/email/conversation/conversation.component'
+            './shared/components/email/conversation/conversation.component'
           ).then((m) => m.ConversationComponent),
       },
       {
         path: 'send-email/:userId',
         loadComponent: () =>
-          import('./client/shared/email/send-email/send-email.component').then(
+          import('./shared/components/email/send-email/send-email.component').then(
             (m) => m.SendEmailComponent
           ),
       },

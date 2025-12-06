@@ -1,13 +1,15 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, AfterViewChecked, } from '@angular/core';
-import { LucideAngularModule, Plus, ClipboardList, UserRound, SquareUserRound, } from 'lucide-angular';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { LucideAngularModule, Plus, ClipboardList, UserRound, SquareUserRound, FolderKanban, LayoutGrid, GanttChart } from 'lucide-angular';
 import { ScrollingModule } from '@angular/cdk/scrolling';
-import { Router, RouterLink } from '@angular/router';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { trigger, transition, style, animate } from '@angular/animations';
 
 import { Project, EstadoProyecto } from '../../../core/model/project.model';
 import { ProjectsService } from '../../../core/services/projects.service';
 import { LoginService } from '../../../auth/services/login.service';
 import { User } from '../../../core/model/user.model';
+import { SidebarService } from '../../../core/services/sidebar.service';
 
 
 interface GroupedProjects {
@@ -25,21 +27,67 @@ interface VirtualScrollItem {
 
 @Component({
   selector: 'app-sidebar',
-  imports: [LucideAngularModule, CommonModule, RouterLink, ScrollingModule],
+  imports: [LucideAngularModule, CommonModule, RouterLink, RouterLinkActive, ScrollingModule],
   templateUrl: './sidebar.component.html',
-  styleUrl: './sidebar.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  animations: [
+    trigger('slideDown', [
+      transition(':enter', [
+        style({ height: 0, opacity: 0, overflow: 'hidden' }),
+        animate('200ms ease-out', style({ height: '*', opacity: 1 }))
+      ]),
+      transition(':leave', [
+        style({ height: '*', opacity: 1, overflow: 'hidden' }),
+        animate('200ms ease-in', style({ height: 0, opacity: 0 }))
+      ])
+    ])
+  ],
+  styles: [`
+    .projects-scroll-container {
+      scrollbar-width: thin;
+      scrollbar-color: #d1d5db transparent;
+    }
+
+    .projects-scroll-container::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .projects-scroll-container::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .projects-scroll-container::-webkit-scrollbar-thumb {
+      background: #d1d5db;
+      border-radius: 3px;
+    }
+
+    .projects-scroll-container::-webkit-scrollbar-thumb:hover {
+      background: #9ca3af;
+    }
+
+    cdk-virtual-scroll-viewport {
+      contain: strict;
+    }
+
+    cdk-virtual-scroll-viewport .cdk-virtual-scroll-content-wrapper {
+      width: 100%;
+    }
+  `]
 })
-export class SidebarComponent implements OnInit, AfterViewChecked {
+export class SidebarComponent implements OnInit {
   readonly plus = Plus;
   readonly clipboardList = ClipboardList;
   readonly userRound = UserRound;
   readonly squareUserRound = SquareUserRound;
+  readonly folderKanban = FolderKanban;
+  readonly layoutGrid = LayoutGrid;
+  readonly ganttChart = GanttChart;
   projects$: Project[] = [];
   groupedProjects: GroupedProjects[] = [];
   virtualScrollItems: VirtualScrollItem[] = [];
   currentUser: User | null = null;
   showCreateProjectModal = false;
+  isCollapsed = false;
 
   projectColors = [
     'bg-green-500',
@@ -51,6 +99,10 @@ export class SidebarComponent implements OnInit, AfterViewChecked {
     'bg-teal-500',
     'bg-red-500',
   ];
+
+  // Track which projects are expanded (for accordion functionality)
+  expandedProjects = new Set<number>();
+
   statusConfig: {
     [key in EstadoProyecto]: { displayName: string; color: string };
   } = {
@@ -79,12 +131,19 @@ export class SidebarComponent implements OnInit, AfterViewChecked {
   constructor(
     private projectsService: ProjectsService,
     private loginService: LoginService,
-    private router: Router,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private sidebarService: SidebarService
   ) {}
 
   ngOnInit(): void {
     this.currentUser = this.loginService.getCurrentUser?.() ?? null;
+
+    // Subscribe to sidebar state
+    this.sidebarService.sidebarCollapsed$.subscribe((collapsed) => {
+      this.isCollapsed = collapsed;
+      this.cdr.markForCheck();
+    });
+
     const loadProjects = () => {
       this.projectsService.findAll().subscribe({
         next: (data) => {
@@ -146,16 +205,6 @@ export class SidebarComponent implements OnInit, AfterViewChecked {
     });
   }
 
-  ngAfterViewChecked(): void {
-    try {
-      if ((window as any).HSStaticMethods) {
-        (window as any).HSStaticMethods.autoInit(['accordion']);
-      }
-    } catch (error) {
-      console.error('Error initializing HSStaticMethods:', error);
-    }
-  }
-
   getColor(index: number): string {
     return this.projectColors[index % this.projectColors.length];
   }
@@ -184,11 +233,23 @@ export class SidebarComponent implements OnInit, AfterViewChecked {
     this.showCreateProjectModal = true;
   }
 
-  handleProjectCreated(project: Project) {
+  handleProjectCreated() {
     this.closeCreateProjectModal();
   }
 
   closeCreateProjectModal() {
     this.showCreateProjectModal = false;
+  }
+
+  toggleProjectAccordion(projectId: number): void {
+    if (this.expandedProjects.has(projectId)) {
+      this.expandedProjects.delete(projectId);
+    } else {
+      this.expandedProjects.add(projectId);
+    }
+  }
+
+  isProjectExpanded(projectId: number): boolean {
+    return this.expandedProjects.has(projectId);
   }
 }

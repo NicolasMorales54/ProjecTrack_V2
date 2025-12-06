@@ -1,0 +1,14 @@
+<div [class]="cardClasses">
+  <div *ngIf="title || subtitle" class="mb-4">
+    <h3 *ngIf="title" class="text-lg font-semibold text-gray-800">{{ title }}</h3>
+    <p *ngIf="subtitle" class="text-sm text-gray-500 mt-1">{{ subtitle }}</p>
+  </div>
+
+  <div class="card-actions mb-4">
+    <ng-content select="[card-actions]"></ng-content>
+  </div>
+
+  <div class="card-content">
+    <ng-content></ng-content>
+  </div>
+</div>

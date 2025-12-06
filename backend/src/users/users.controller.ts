@@ -27,20 +27,35 @@ export class UsersController {
     return this.usersService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.usersService.findOne(+id);
-  }
-
   @Get('by-project/:projectId')
   findByProjectId(@Param('projectId') projectId: string) {
     return this.usersService.findByProjectId(+projectId);
   }
 
-  // @Patch(':id')
-  // update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-  //   return this.usersService.update(+id, updateUserDto);
-  // }
+  @Get('by-role/:role')
+  findByRole(@Param('role') role: string) {
+    return this.usersService.findByRole(role);
+  }
+
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.usersService.findOne(+id);
+  }
+
+  @Get(':id/hashed-password')
+  async getHashedPassword(@Param('id') id: string) {
+    return this.usersService.getHashedPassword(+id);
+  }
+
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+    return this.usersService.update(+id, updateUserDto);
+  }
+
+  @Patch(':id/role')
+  updateRole(@Param('id') id: string, @Body() body: { rol: string }) {
+    return this.usersService.updateRole(+id, body.rol);
+  }
 
   @Patch(':id/password')
   async updatePassword(
@@ -61,10 +76,5 @@ export class UsersController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.usersService.remove(+id);
-  }
-
-  @Get(':id/hashed-password')
-  async getHashedPassword(@Param('id') id: string) {
-    return this.usersService.getHashedPassword(+id);
   }
 }

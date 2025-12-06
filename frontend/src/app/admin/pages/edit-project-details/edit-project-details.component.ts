@@ -14,13 +14,13 @@ import {
   UpdateProjectDto,
 } from '../../../core/model/project.model';
 import { ProjectsService } from '../../../core/services/projects.service';
+import { LoginService } from '../../../auth/services/login.service';
 
 @Component({
   selector: 'app-edit-project-details',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './edit-project-details.component.html',
-  styleUrl: './edit-project-details.component.css',
 })
 export class EditProjectDetailsComponent implements OnInit {
   form: FormGroup;
@@ -34,7 +34,8 @@ export class EditProjectDetailsComponent implements OnInit {
     private fb: FormBuilder,
     private projectsService: ProjectsService,
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private loginService: LoginService
   ) {
     this.estadoProyectoEntries = Object.entries(EstadoProyecto) as [
       keyof typeof EstadoProyecto,
@@ -93,7 +94,16 @@ export class EditProjectDetailsComponent implements OnInit {
     this.projectsService.update(this.projectId, dto).subscribe({
       next: (_project: Project) => {
         this.loading = false;
-        this.router.navigate(['/admin/main']); // Or redirect to kanban/project page
+        // Redirect based on user role
+        const user = this.loginService.getCurrentUser();
+        const roleMap: { [key: string]: string } = {
+          'Administrador': 'admin',
+          'Líder de Proyecto': 'leader',
+          'Empleado': 'employee',
+          'Cliente': 'client'
+        };
+        const roleBasePath = roleMap[user?.rol || ''] || 'admin';
+        this.router.navigate([`/${roleBasePath}/main`]);
       },
       error: (err) => {
         this.loading = false;

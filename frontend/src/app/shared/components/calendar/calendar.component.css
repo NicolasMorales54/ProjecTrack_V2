@@ -1,0 +1,39 @@
+/* Importar estilos de Syncfusion SOLO para este componente */
+@import '@syncfusion/ej2-base/styles/material.css';
+@import '@syncfusion/ej2-buttons/styles/material.css';
+@import '@syncfusion/ej2-calendars/styles/material.css';
+@import '@syncfusion/ej2-dropdowns/styles/material.css';
+@import '@syncfusion/ej2-inputs/styles/material.css';
+@import '@syncfusion/ej2-lists/styles/material.css';
+@import '@syncfusion/ej2-navigations/styles/material.css';
+@import '@syncfusion/ej2-popups/styles/material.css';
+@import '@syncfusion/ej2-splitbuttons/styles/material.css';
+@import '@syncfusion/ej2-schedule/styles/material.css';
+
+/* Personalización para que se vea bien con Tailwind */
+/* Nota: Se mantienen los !important solo donde Syncfusion los necesita para sobrescribir sus estilos por defecto */
+
+/* Ajustar colores del calendario para que coincidan con tu paleta */
+.calendar-container .e-schedule .e-toolbar-items {
+  background-color: #f9fafb !important;
+  border-bottom: 1px solid #e5e7eb !important;
+}
+
+.calendar-container .e-schedule .e-toolbar-item .e-tbar-btn {
+  color: #374151 !important;
+}
+
+.calendar-container .e-schedule .e-toolbar-item .e-tbar-btn:hover {
+  background-color: #f3f4f6 !important;
+}
+
+/* Colores de eventos según prioridad */
+.calendar-container .e-schedule .e-appointment {
+  border-radius: 4px !important;
+}
+
+/* Mejorar legibilidad del texto en eventos */
+.calendar-container .e-schedule .e-appointment .e-subject {
+  font-weight: 500 !important;
+  font-size: 0.875rem !important;
+}

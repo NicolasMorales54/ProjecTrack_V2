@@ -16,7 +16,6 @@ import { ProjectUsersService } from '../../../core/services/project-users.servic
 import { UsersExtraService } from '../../../core/services/users-extra.service';
 import { ProjectsService } from '../../../core/services/projects.service';
 import { ModalAssignUserComponent } from './modal-assign-user.component';
-import { ModalEditUserComponent } from './modal-edit-user.component';
 import { UsersService } from '../../../core/services/users.service';
 import { Project } from '../../../core/model/project.model';
 import { User } from '../../../core/model/user.model';
@@ -24,9 +23,8 @@ import { User } from '../../../core/model/user.model';
 @Component({
   selector: 'app-users',
   standalone: true,
-  imports: [CommonModule, ModalAssignUserComponent, ModalEditUserComponent],
+  imports: [CommonModule, ModalAssignUserComponent],
   templateUrl: './users.component.html',
-  styleUrl: './users.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class UsersComponent implements OnInit {
@@ -38,11 +36,6 @@ export class UsersComponent implements OnInit {
   showAssignModal = false;
   assignLoading = false;
   assignError: string | null = null;
-
-  showEditModal = false;
-  editLoading = false;
-  editError: string | null = null;
-  selectedUser: User | null = null;
 
   private usersService = inject(UsersService);
   private usersExtraService = inject(UsersExtraService);
@@ -77,7 +70,7 @@ export class UsersComponent implements OnInit {
                 id: u.id,
                 nombre: u.primerNombre || u.nombre || u.nombreUsuario || '',
                 correoElectronico: u.correoElectronico || '',
-                rol: u.rol || u.rolEnProyecto || '',
+                rol: u.rolEnProyecto || u.rol || '', // Use rolEnProyecto first (project role)
                 createdAt: u.createdAt || u.fechaRegistro || '',
               };
             });
@@ -121,7 +114,7 @@ export class UsersComponent implements OnInit {
               id: u.id,
               nombre: u.primerNombre || u.nombre || u.nombreUsuario || '',
               correoElectronico: u.correoElectronico || '',
-              rol: u.rol || u.rolEnProyecto || '',
+              rol: u.rolEnProyecto || u.rol || '', // Use rolEnProyecto first
               createdAt: u.createdAt || u.fechaRegistro || '',
             }));
             this.cdr.markForCheck();
@@ -141,62 +134,8 @@ export class UsersComponent implements OnInit {
     this.assignError = null;
   }
 
-  openEditModal(user: User) {
-    this.selectedUser = user;
-    this.showEditModal = true;
-    this.editLoading = false;
-    this.editError = null;
-    this.cdr.markForCheck();
-  }
-
-  handleEditUser(data: any) {
-    if (!data.id) return;
-    this.editLoading = true;
-    this.editError = null;
-    // Only update name, email, and role in project
-    const updateDto = {
-      nombre: data.nombre,
-      correoElectronico: data.correoElectronico,
-      rol: data.rolEnProyecto,
-    };
-    this.usersService.update(data.id, updateDto).subscribe({
-      next: () => {
-        this.showEditModal = false;
-        this.editLoading = false;
-        // Refresh users list
-        if (this.projectId) {
-          this.usersService
-            .findByProjectId(this.projectId)
-            .subscribe((users: any[]) => {
-              this.users = users.map((u) => ({
-                id: u.id,
-                nombre: u.primerNombre || u.nombre || u.nombreUsuario || '',
-                correoElectronico: u.correoElectronico || '',
-                rol: u.rol || u.rolEnProyecto || '',
-                createdAt: u.createdAt || u.fechaRegistro || '',
-              }));
-              this.cdr.markForCheck();
-            });
-        }
-        this.cdr.markForCheck();
-      },
-      error: (err) => {
-        this.editError = 'No se pudo editar el usuario.';
-        this.editLoading = false;
-        this.cdr.markForCheck();
-      },
-    });
-  }
-
-  closeEditModal() {
-    this.showEditModal = false;
-    this.editError = null;
-    this.selectedUser = null;
-    this.cdr.markForCheck();
-  }
-
   contactUser(user: User) {
     // Navigate to send-email route for the selected user
-    this.router.navigate([`/admin/send-email/${user.id}`]);
+    this.router.navigate(['/leader/send-email', user.id]);
   }
 }

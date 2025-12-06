@@ -38,8 +38,18 @@ export class NotificationsService {
     return this.http.delete<Notification>(`${this.apiUrl}/${id}`);
   }
 
+  // Alias para remove
+  delete(id: number): Observable<Notification> {
+    return this.remove(id);
+  }
+
   findByUserId(userId: number): Observable<Notification[]> {
     return this.http.get<Notification[]>(`${this.apiUrl}/user/${userId}`);
+  }
+
+  // Alias para findByUserId
+  getByUserId(userId: number): Observable<Notification[]> {
+    return this.findByUserId(userId);
   }
 
   findMyNotifications(): Observable<Notification[]> {
@@ -54,14 +64,10 @@ export class NotificationsService {
     return this.update(id, { leida: true });
   }
 
-  markAllAsRead(): Observable<Notification[]> {
-    const userId = this.loginService.getCurrentUserId();
-    if (userId) {
-      return this.http.post<Notification[]>(
-        `${this.apiUrl}/read-all/${userId}`,
-        {}
-      );
-    }
-    throw new Error('No user is currently logged in');
+  markAllAsRead(userId: number): Observable<Notification[]> {
+    return this.http.post<Notification[]>(
+      `${this.apiUrl}/read-all/${userId}`,
+      {}
+    );
   }
 }

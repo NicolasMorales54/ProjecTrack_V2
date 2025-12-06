@@ -22,7 +22,7 @@ import { LoginService } from '../../../auth/services/login.service';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './create-task.component.html',
-  styleUrl: './create-task.component.css',
+  styles: ['/* Migrado a Tailwind CSS */'],
 })
 export class CreateTaskComponent implements OnInit {
   form!: FormGroup;

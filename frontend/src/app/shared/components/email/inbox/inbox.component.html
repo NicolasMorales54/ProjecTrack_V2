@@ -1,0 +1,109 @@
+<!-- Header con gradiente -->
+<div class="bg-gradient-to-r from-primary-600 to-primary-700 rounded-t-lg px-6 py-4 shadow-sm">
+  <div class="flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+      </svg>
+      <div>
+        <h1 class="text-xl font-bold text-white">Bandeja de entrada</h1>
+        <p class="text-xs text-primary-100">Gestiona tus mensajes internos</p>
+      </div>
+    </div>
+    <button
+      class="bg-white hover:bg-gray-50 px-4 py-2 rounded-lg font-semibold text-primary-600 transition-colors duration-200 shadow-sm flex items-center gap-2"
+      [routerLink]="['/' + roleBasePath + '/send-email', myUserId]">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+      </svg>
+      Nuevo mensaje
+    </button>
+  </div>
+</div>
+
+<!-- Content area -->
+<div class="bg-white rounded-b-lg shadow-sm border border-gray-200 border-t-0 min-h-[500px]">
+      <!-- Loading state -->
+      <div *ngIf="loading" class="flex flex-col items-center justify-center py-16">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mb-4"></div>
+        <p class="text-gray-500 font-medium">Cargando mensajes...</p>
+      </div>
+
+      <!-- Error state -->
+      <div *ngIf="error && !loading" class="p-6">
+        <div class="bg-red-50 border-l-4 border-red-500 rounded-lg p-4">
+          <div class="flex items-start gap-3">
+            <svg class="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <div>
+              <p class="text-red-800 font-semibold">Error al cargar mensajes</p>
+              <p class="text-red-700 text-sm mt-1">{{ error }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty state -->
+      <div *ngIf="!loading && emails.length === 0 && !error" class="p-12 text-center">
+        <div class="bg-gray-50 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-4">
+          <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+          </svg>
+        </div>
+        <h3 class="text-xl font-semibold text-gray-700 mb-2">No tienes mensajes</h3>
+        <p class="text-gray-500 mb-6">Tu bandeja de entrada está vacía. Comienza una conversación.</p>
+        <button
+          class="bg-primary-600 hover:bg-primary-700 px-6 py-2.5 rounded-lg font-semibold text-white transition-all duration-200 shadow-md hover:shadow-lg"
+          [routerLink]="['/' + roleBasePath + '/send-email', myUserId]">
+          Enviar tu primer mensaje
+        </button>
+      </div>
+
+      <!-- Email list -->
+      <div *ngIf="!loading && emails.length > 0">
+        <div class="divide-y divide-gray-200">
+          <div
+            *ngFor="let email of emails"
+            (click)="openEmail(email)"
+            class="p-4 hover:bg-primary-50 cursor-pointer transition-colors duration-150 group">
+            <div class="flex items-start gap-3">
+              <!-- Avatar circle -->
+              <div class="flex-shrink-0">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-white font-semibold text-sm">
+                  {{ (email.remitente?.nombreUsuario || 'U').charAt(0).toUpperCase() }}
+                </div>
+              </div>
+
+              <!-- Email content -->
+              <div class="flex-1 min-w-0">
+                <!-- Header: sender and time -->
+                <div class="flex items-center justify-between mb-1">
+                  <span class="font-semibold text-gray-800 text-sm">
+                    {{ email.remitente?.nombreUsuario || 'Usuario' }}
+                  </span>
+                  <span class="text-xs text-gray-500">
+                    {{ email.fechaEnvio | date:'dd/MM/yyyy HH:mm' }}
+                  </span>
+                </div>
+
+                <!-- Subject -->
+                <h3 class="font-medium text-gray-800 mb-1 group-hover:text-primary-600 transition-colors">
+                  {{ email.asunto }}
+                </h3>
+
+                <!-- Preview -->
+                <p class="text-sm text-gray-600 line-clamp-2">{{ email.cuerpo }}</p>
+              </div>
+
+              <!-- Arrow icon -->
+              <div class="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+                <svg class="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>

@@ -1,12 +1,16 @@
 export interface User {
   id: number;
   nombre?: string;
+  nombreUsuario?: string;
   correoElectronico: string;
   rol?: 'Administrador' | 'Líder de Proyecto' | 'Empleado' | 'Cliente';
   createdAt?: string;
   updatedAt?: string;
   primerNombre?: string;
   segundoNombre?: string;
+  primerApellido?: string;
+  segundoApellido?: string;
+  posicion?: string;
 }
 
 export interface UserState {

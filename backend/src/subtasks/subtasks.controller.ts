@@ -47,6 +47,11 @@ export class SubtasksController {
     return this.subtasksService.findByTaskId(+taskId);
   }
 
+  @Get('task/:taskId/with-assignments')
+  findByTaskIdWithAssignments(@Param('taskId') taskId: string) {
+    return this.subtasksService.findByTaskIdWithAssignments(+taskId);
+  }
+
   @Get('by-project/:projectId')
   findByProjectId(@Param('projectId') projectId: string) {
     return this.subtasksService.findByProjectId(+projectId);

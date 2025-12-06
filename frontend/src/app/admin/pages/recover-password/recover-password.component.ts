@@ -10,7 +10,6 @@ import { LoginService } from '../../../auth/services/login.service';
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './recover-password.component.html',
-  styleUrl: './recover-password.component.css',
 })
 export class RecoverPasswordComponent {
   newPassword: string = '';

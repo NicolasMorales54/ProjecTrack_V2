@@ -56,4 +56,43 @@ export class ProjectsService {
   findByUserId(userId: number): Observable<Project[]> {
     return this.http.get<Project[]>(`${this.apiUrl}/user/${userId}`);
   }
+
+  updateProjectUserRole(projectId: number, userId: number, rolEnProyecto: string): Observable<any> {
+    return this.http.patch(`${this.apiUrl}/${projectId}/user/${userId}/role`, { rolEnProyecto });
+  }
+
+  removeUserFromProject(projectId: number, userId: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${projectId}/user/${userId}`);
+  }
+
+  // ============ FASE 3: Nuevos métodos ============
+
+  getProjectHistory(projectId: number): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/${projectId}/history`);
+  }
+
+  downloadProjectReport(projectId: number): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/${projectId}/report`, {
+      responseType: 'blob',
+    });
+  }
+
+  // Phase 3: Soft delete
+  softDelete(projectId: number): Observable<Project> {
+    const usuarioId = this.loginService.getCurrentUserId();
+    console.log('[ProjectsService] softDelete - usuarioId:', usuarioId);
+    return this.http.patch<Project>(`${this.apiUrl}/${projectId}/soft-delete`, { usuarioId });
+  }
+
+  // Phase 3: Change project state
+  changeEstado(projectId: number, estado: string): Observable<Project> {
+    const usuarioId = this.loginService.getCurrentUserId();
+    console.log('[ProjectsService] changeEstado - usuarioId:', usuarioId, 'estado:', estado);
+    return this.http.patch<Project>(`${this.apiUrl}/${projectId}/change-estado`, { estado, usuarioId });
+  }
+
+  // FASE 6: Cronograma - Timeline
+  getTimeline(projectId: number): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/${projectId}/timeline`);
+  }
 }

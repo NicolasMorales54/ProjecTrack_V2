@@ -7,15 +7,19 @@ import {
   TasksService,
   Task,
   Prioridad,
+  EstadoTarea,
 } from '../../../core/services/tasks.service';
 import { TimeTrackingService } from '../../../core/services/time-tracking.service';
 import { ModalRegistrarTiempoComponent } from './modal-registrar-tiempo.component';
-import { ModalAgregarSubtareaComponent } from './modal-agregar-subtarea.component';
+import { ModalAgregarSubtareaComponent } from '../../../shared/modals/modal-agregar-subtarea/modal-agregar-subtarea.component';
 import { SubtasksService } from '../../../core/services/subtasks.service';
 import { TimeTracking } from '../../../core/model/time-tracking.model';
 import { UsersService } from '../../../core/services/users.service';
 import { Subtask } from '../../../core/model/subtask.model';
 import { User } from '../../../core/model/user.model';
+import { LoginService } from '../../../auth/services/login.service';
+import { FileUploadComponent } from '../../../shared/components/file-upload/file-upload.component';
+import { SubtaskFileUploadComponent } from '../../../shared/components/subtask-file-upload/subtask-file-upload.component';
 
 @Component({
   selector: 'app-task-detail',
@@ -25,9 +29,11 @@ import { User } from '../../../core/model/user.model';
     FormsModule,
     ModalAgregarSubtareaComponent,
     ModalRegistrarTiempoComponent,
+    FileUploadComponent,
+    SubtaskFileUploadComponent,
   ],
   templateUrl: './task-detail.component.html',
-  styleUrl: './task-detail.component.css',
+  styles: ['/* Migrado a Tailwind CSS */'],
 })
 export class TaskDetailComponent implements OnInit {
   task: Task | null = null;
@@ -36,8 +42,10 @@ export class TaskDetailComponent implements OnInit {
   users: { [id: number]: User } = {};
   loading = true;
   Prioridad = Prioridad;
+  EstadoTarea = EstadoTarea;
 
   showPriorityMenu = false;
+  showEstadoMenu = false;
   newSubtaskTitle = '';
   newTimeStart = '';
   newTimeEnd = '';
@@ -45,6 +53,9 @@ export class TaskDetailComponent implements OnInit {
 
   showAgregarSubtareaModal = false;
   showRegistrarTiempoModal = false;
+  expandedSubtasks: { [subtaskId: number]: boolean } = {};
+
+  private loginService = inject(LoginService);
 
   constructor(
     private route: ActivatedRoute,
@@ -56,6 +67,17 @@ export class TaskDetailComponent implements OnInit {
     private usersService: UsersService,
     private cdr: ChangeDetectorRef
   ) {}
+
+  // Computed properties para permisos basados en rol
+  get canEditPriority(): boolean {
+    const user = this.loginService.getCurrentUser();
+    return user?.rol !== 'Empleado' && user?.rol !== 'Cliente';
+  }
+
+  get canAddSubtasks(): boolean {
+    const user = this.loginService.getCurrentUser();
+    return user?.rol !== 'Empleado' && user?.rol !== 'Cliente';
+  }
 
   ngOnInit() {
     this.route.paramMap.subscribe((params) => {
@@ -123,6 +145,22 @@ export class TaskDetailComponent implements OnInit {
         .subscribe((updated) => {
           this.task = { ...this.task!, prioridad: priority };
           this.cdr.markForCheck();
+        });
+    }
+  }
+
+  changeEstado(estado: EstadoTarea) {
+    if (this.task) {
+      this.tasksService
+        .update(this.task.id, { estado: estado })
+        .subscribe((updated) => {
+          this.task = { ...this.task!, estado: estado };
+          this.cdr.markForCheck();
+
+          // If task is marked as completed, open time registration modal
+          if (estado === EstadoTarea.COMPLETADA) {
+            this.showRegistrarTiempoModal = true;
+          }
         });
     }
   }
@@ -222,5 +260,9 @@ export class TaskDetailComponent implements OnInit {
       this.addTimeRecord(start, end, event.notes);
     }
     this.showRegistrarTiempoModal = false;
+  }
+
+  toggleSubtaskFiles(subtaskId: number) {
+    this.expandedSubtasks[subtaskId] = !this.expandedSubtasks[subtaskId];
   }
 }

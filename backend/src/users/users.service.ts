@@ -7,7 +7,7 @@ import { UsuarioProyecto } from '../projects/entities/usuario-proyecto.entity';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { CreateUserDto } from './dto/create-user.dto';
-import { User } from './entities/user.entity';
+import { User, Rol } from './entities/user.entity';
 
 type SafeUser = Omit<User, 'contrasena'>;
 
@@ -75,7 +75,10 @@ export class UsersService {
     });
     return userProjects.map((up) => {
       const { contrasena, ...user } = up.usuario;
-      return user;
+      return {
+        ...user,
+        rolEnProyecto: up.rolEnProyecto, // Include the project-specific role
+      };
     });
   }
 
@@ -113,5 +116,40 @@ export class UsersService {
     const user = await this.userRepository.findOne({ where: { id } });
     if (!user || !user.contrasena) return null;
     return { hashedPassword: user.contrasena };
+  }
+
+  async update(id: number, dto: UpdateUserDto): Promise<SafeUser> {
+    const user = await this.userRepository.findOne({ where: { id } });
+    if (!user) throw new Error('User not found');
+
+    // No permitir actualizar contraseña aquí (usar endpoint específico)
+    const { contrasena, ...updateData } = dto as any;
+
+    // Actualizar campos permitidos
+    Object.assign(user, updateData);
+    await this.userRepository.save(user);
+
+    // Retornar sin contraseña
+    const { contrasena: _, ...userWithoutPassword } = user;
+    return userWithoutPassword as SafeUser;
+  }
+
+  async updateRole(id: number, newRole: string): Promise<SafeUser> {
+    const user = await this.userRepository.findOne({ where: { id } });
+    if (!user) throw new Error('User not found');
+
+    user.rol = newRole as Rol;
+    await this.userRepository.save(user);
+
+    const { contrasena, ...userWithoutPassword } = user;
+    return userWithoutPassword as SafeUser;
+  }
+
+  async findByRole(role: string): Promise<SafeUser[]> {
+    const users = await this.userRepository.find({ where: { rol: role as Rol } });
+    return users.map(user => {
+      const { contrasena, ...userWithoutPassword } = user;
+      return userWithoutPassword as SafeUser;
+    });
   }
 }

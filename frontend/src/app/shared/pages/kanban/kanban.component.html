@@ -1,0 +1,88 @@
+<!-- Cabecera con título y botón -->
+<div class="flex justify-between items-center mb-6 max-sm:flex-col max-sm:items-start max-sm:gap-3">
+  <div class="font-bold text-gray-800 text-2xl">{{ projectName }}</div>
+  <button
+    *ngIf="canCreateTasks"
+    class="bg-gradient-to-r from-purple-600 to-indigo-500 hover:from-indigo-500 hover:to-purple-600 text-white font-semibold px-7 py-2.5 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:scale-105 max-sm:w-full max-sm:py-3 max-sm:text-lg tracking-wide"
+    (click)="goToCreateTask()">
+    Crear tarea
+  </button>
+</div>
+
+<!-- Tablero Kanban -->
+<div class="flex flex-row gap-6 w-full py-6 bg-gray-50 max-[900px]:flex-col max-[900px]:gap-0" *ngIf="!loading">
+  <ng-container *ngFor="let col of columns; let i = index">
+    <div class="bg-white rounded-2xl shadow-sm p-4 pb-2 min-w-80 max-w-[340px] flex-1 flex flex-col h-[80vh] max-[900px]:max-w-full max-[900px]:min-w-0 max-[900px]:mb-6 max-[900px]:h-[60vh]">
+      <!-- Encabezado de columna -->
+      <div class="flex justify-between items-center text-lg font-semibold mb-3 pb-2 border-b-2 border-gray-200 gap-2 text-gray-800">
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full inline-block"
+            [ngClass]="{
+              'bg-purple-400': col.color === 'purple',
+              'bg-amber-400': col.color === 'yellow',
+              'bg-emerald-400': col.color === 'green',
+              'bg-red-400': col.color === 'red'
+            }"></span>
+          <span class="font-semibold">{{ col.label }}</span>
+          <span class="ml-2 text-gray-500 text-xs">
+            {{ tasksByEstado[col.key].length }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Lista arrastrable -->
+      <div cdkDropList class="flex-1 overflow-y-auto min-h-0 max-h-full pr-0.5" [id]="dropListIds[i]" [cdkDropListData]="tasksByEstado[col.key]"
+        [cdkDropListConnectedTo]="getConnectedDropLists(i)" (cdkDropListDropped)="onDropFactory(col.key)($event)">
+        <!-- Tarjetas -->
+        <div *ngFor="let task of tasksByEstado[col.key]" cdkDrag [cdkDragDisabled]="!canCreateTasks"
+          class="bg-white rounded-xl shadow-sm mb-4 px-3 py-4 pb-3 border-[1.5px] transition-all duration-200 flex flex-col gap-1 relative select-none hover:bg-gray-50"
+          [class.cursor-pointer]="canCreateTasks"
+          [class.hover:shadow-md]="canCreateTasks"
+          [ngClass]="{
+            'border-purple-400': col.color === 'purple',
+            'border-amber-400': col.color === 'yellow',
+            'border-emerald-400': col.color === 'green',
+            'border-red-400': col.color === 'red'
+          }"
+          [routerLink]="['/' + roleBasePath + '/project', projectId, 'task-detail', task.id]">
+          <div class="flex justify-between items-center mb-1">
+            <span *ngIf="task.prioridad === 'Alta'"
+              class="text-xs font-semibold rounded-md px-2 py-0.5 mr-2 bg-red-100 text-red-600">
+              Prioridad alta
+            </span>
+            <span *ngIf="task.prioridad === 'Media'"
+              class="text-xs font-semibold rounded-md px-2 py-0.5 mr-2 bg-yellow-100 text-yellow-700">
+              Prioridad media
+            </span>
+            <span *ngIf="task.prioridad === 'Baja'"
+              class="text-xs font-semibold rounded-md px-2 py-0.5 mr-2 bg-emerald-100 text-emerald-600">
+              Prioridad baja
+            </span>
+            <span *ngIf="col.key === EstadoTarea.COMPLETADA"
+              class="text-xs font-semibold rounded-md px-2 py-0.5 mr-2 bg-emerald-100 text-emerald-600">
+              Completado
+            </span>
+            <span class="text-xl text-gray-400 cursor-pointer ml-auto">...</span>
+          </div>
+
+          <div class="font-bold text-gray-800">
+            {{ task.nombre }}
+          </div>
+
+          <div class="mb-2 text-gray-500 text-xs">
+            {{ task.categoria || col.label }}
+          </div>
+          <div class="mb-2 text-gray-400 text-xs">
+            {{ task.descripcion }}
+          </div>
+
+          <div class="flex mt-2">
+            <img src="avatar-placeholder.png"
+              class="w-7 h-7 rounded-full object-cover border-2 border-white shadow-sm -mr-2"
+              alt="Creator" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+</div>

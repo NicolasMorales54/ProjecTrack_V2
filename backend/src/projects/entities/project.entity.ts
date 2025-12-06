@@ -5,11 +5,13 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   ManyToOne,
+  OneToMany,
   JoinColumn,
   Index,
 } from 'typeorm';
 // src/projects/entities/project.entity.ts
 import { User } from 'src/users/entities/user.entity';
+import { Task } from 'src/tasks/entities/task.entity';
 
 export enum EstadoProyecto {
   ABIERTO = 'Abierto',
@@ -56,4 +58,44 @@ export class Project {
 
   @UpdateDateColumn({ name: 'fecha_actualizacion' })
   fechaActualizacion: Date;
+
+  @Column({ type: 'boolean', default: false })
+  eliminado: boolean;
+
+  // Campos de auditoría para archivado
+  @Column({ name: 'archivado_por', nullable: true })
+  archivadoPorId?: number;
+
+  @ManyToOne(() => User)
+  @JoinColumn({ name: 'archivado_por' })
+  archivadoPor?: User;
+
+  @Column({ name: 'fecha_archivado', type: 'datetime', nullable: true })
+  fechaArchivado?: Date;
+
+  // Campos de auditoría para eliminación
+  @Column({ name: 'eliminado_por', nullable: true })
+  eliminadoPorId?: number;
+
+  @ManyToOne(() => User)
+  @JoinColumn({ name: 'eliminado_por' })
+  eliminadoPor?: User;
+
+  @Column({ name: 'fecha_eliminado', type: 'datetime', nullable: true })
+  fechaEliminado?: Date;
+
+  // Campos de auditoría para pausado
+  @Column({ name: 'pausado_por', nullable: true })
+  pausadoPorId?: number;
+
+  @ManyToOne(() => User)
+  @JoinColumn({ name: 'pausado_por' })
+  pausadoPor?: User;
+
+  @Column({ name: 'fecha_pausado', type: 'datetime', nullable: true })
+  fechaPausado?: Date;
+
+  // FASE 6: Relación con tareas para cronograma
+  @OneToMany(() => Task, (task) => task.project)
+  tareas?: Task[];
 }

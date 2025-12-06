@@ -57,6 +57,12 @@ export class TasksController {
     return this.tasksService.findOneByUserId(+userId, +id);
   }
 
+  // FASE 6: Endpoint para calendario
+  @Get('user/:userId/calendar')
+  getTasksForCalendar(@Param('userId') userId: string) {
+    return this.tasksService.getTasksForCalendar(+userId);
+  }
+
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateTaskDto: UpdateTaskDto) {
     return this.tasksService.update(+id, updateTaskDto);

@@ -25,7 +25,6 @@ import { User } from '../../../../core/model/user.model';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './send-email.component.html',
-  styleUrl: './send-email.component.css',
 })
 export class SendEmailComponent implements OnInit {
   @Input() userId!: number; // The sender's userId

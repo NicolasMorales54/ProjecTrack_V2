@@ -1,0 +1,81 @@
+/* Importar estilos de Syncfusion SOLO para este componente */
+@import '@syncfusion/ej2-base/styles/material.css';
+@import '@syncfusion/ej2-buttons/styles/material.css';
+@import '@syncfusion/ej2-calendars/styles/material.css';
+@import '@syncfusion/ej2-dropdowns/styles/material.css';
+@import '@syncfusion/ej2-inputs/styles/material.css';
+@import '@syncfusion/ej2-lists/styles/material.css';
+@import '@syncfusion/ej2-navigations/styles/material.css';
+@import '@syncfusion/ej2-popups/styles/material.css';
+@import '@syncfusion/ej2-splitbuttons/styles/material.css';
+@import '@syncfusion/ej2-grids/styles/material.css';
+@import '@syncfusion/ej2-treegrid/styles/material.css';
+@import '@syncfusion/ej2-gantt/styles/material.css';
+
+/* Custom styling for Tailwind compatibility */
+/* Nota: Se mantienen los !important solo donde Syncfusion los necesita para sobrescribir sus estilos por defecto */
+.cronograma-container {
+  font-family: inherit;
+}
+
+.cronograma-container .e-gantt .e-toolbar {
+  background-color: #f9fafb !important;
+  border-bottom: 1px solid #e5e7eb !important;
+}
+
+.cronograma-container .e-gantt .e-gantt-chart {
+  background-color: #ffffff !important;
+}
+
+.cronograma-container .e-gantt .e-header-cell-label {
+  color: #374151 !important;
+  font-weight: 600 !important;
+}
+
+.cronograma-container .e-gantt .e-timeline-header-container {
+  background-color: #f3f4f6 !important;
+}
+
+/* Task bar colors based on status */
+.cronograma-container .e-gantt .e-gantt-child-taskbar {
+  background-color: #3b82f6 !important; /* blue-500 */
+  border-color: #2563eb !important; /* blue-600 */
+}
+
+.cronograma-container .e-gantt .e-gantt-child-progressbar {
+  background-color: #10b981 !important; /* green-500 */
+}
+
+/* Milestone styling */
+.cronograma-container .e-gantt .e-milestone-top,
+.cronograma-container .e-gantt .e-milestone-bottom {
+  border-color: #8b5cf6 !important; /* purple-500 */
+  background-color: #8b5cf6 !important;
+}
+
+/* Grid styling */
+.cronograma-container .e-gantt .e-gridcontent,
+.cronograma-container .e-gantt .e-gridheader {
+  font-size: 0.875rem !important;
+}
+
+.cronograma-container .e-gantt .e-rowcell,
+.cronograma-container .e-gantt .e-headercell {
+  border-color: #e5e7eb !important;
+}
+
+/* Toolbar icons */
+.cronograma-container .e-gantt .e-toolbar .e-tbar-btn {
+  color: #374151 !important;
+}
+
+.cronograma-container .e-gantt .e-toolbar .e-tbar-btn:hover {
+  background-color: #e5e7eb !important;
+}
+
+/* Tooltip styling */
+.cronograma-container .e-gantt .e-gantt-tooltip {
+  background-color: #1f2937 !important;
+  color: #ffffff !important;
+  border-radius: 0.5rem !important;
+}

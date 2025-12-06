@@ -18,7 +18,6 @@ import {
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterLink],
   templateUrl: './recover-password.component.html',
-  styleUrl: './recover-password.component.css',
 })
 export class RecoverPasswordComponent {
   recoverForm: FormGroup;

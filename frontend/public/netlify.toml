@@ -1,10 +1,5 @@
 # Configuración de Netlify para Projectrack
 
-# Directorio de build
-[build]
-  publish = "dist/projectrack/browser"
-  command = "npm run build"
-
 # Redirección de API al backend en Google Cloud
 [[redirects]]
   from = "/api/*"

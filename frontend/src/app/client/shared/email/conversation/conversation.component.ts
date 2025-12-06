@@ -17,7 +17,6 @@ import { Email } from '../../../../core/model/email.model';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './conversation.component.html',
-  styleUrl: './conversation.component.css',
 })
 export class ConversationComponent implements OnInit {
   email: Email | null = null;
